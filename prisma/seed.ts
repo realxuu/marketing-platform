@@ -1,7 +1,19 @@
 import 'dotenv/config'
 import { PrismaClient } from '@prisma/client'
+import { PrismaPg } from '@prisma/adapter-pg'
+import { Pool } from 'pg'
 
-const prisma = new PrismaClient()
+function createPrismaClient() {
+  if (process.env.POSTGRES_PRISMA_URL) {
+    const adapter = new PrismaPg(new Pool({
+      connectionString: process.env.POSTGRES_PRISMA_URL,
+    }))
+    return new PrismaClient({ adapter })
+  }
+  return new PrismaClient()
+}
+
+const prisma = createPrismaClient()
 
 async function main() {
   // 清空现有数据
