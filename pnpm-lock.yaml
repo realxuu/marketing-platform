@@ -12,8 +12,11 @@ importers:
         specifier: ^1.3.0
         version: 1.3.0(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@neondatabase/serverless':
-        specifier: ^1.0.2
-        version: 1.0.2
+        specifier: ^0.10.0
+        version: 0.10.0
+      '@prisma/adapter-neon':
+        specifier: ^5.22.0
+        version: 5.22.0(@neondatabase/serverless@0.10.0)
       '@prisma/adapter-pg':
         specifier: ^5.22.0
         version: 5.22.0(pg@8.20.0)
@@ -728,12 +731,11 @@ packages:
   '@napi-rs/wasm-runtime@0.2.12':
     resolution: {integrity: sha512-ZVWUcfwY4E/yPitQJl481FjFo3K22D6qF0DuFH6Y/nbnE11GY5uguDxZMGXPQ8WQ0128MXQD7TnfHyK4oWoIJQ==}
 
+  '@neondatabase/serverless@0.10.0':
+    resolution: {integrity: sha512-+0mjRGJFL2kGyTtWo60PxIcgv0a/X/vCu4DV2iS3tL+Rl/OrFocJoN3aNajugvgBQj624aOK7LowLijoQHWIXg==}
+
   '@neondatabase/serverless@0.9.5':
     resolution: {integrity: sha512-siFas6gItqv6wD/pZnvdu34wEqgG3nSE6zWZdq5j2DEsa+VvX8i/5HXJOo06qrw5axPXn+lGCxeR+NLaSPIXug==}
-
-  '@neondatabase/serverless@1.0.2':
-    resolution: {integrity: sha512-I5sbpSIAHiB+b6UttofhrN/UJXII+4tZPAq1qugzwCwLIL8EZLV7F/JyHUrEIiGgQpEXzpnjlJ+zwcEhheGvCw==}
-    engines: {node: '>=19.0.0'}
 
   '@next/env@16.2.3':
     resolution: {integrity: sha512-ZWXyj4uNu4GCWQw9cjRxWlbD+33mcDszIo9iQxFnBX3Wmgq9ulaSJcl6VhuWx5pCWqqD+9W6Wfz7N0lM5lYPMA==}
@@ -829,6 +831,11 @@ packages:
 
   '@open-draft/until@2.1.0':
     resolution: {integrity: sha512-U69T3ItWHvLwGg5eJ0n3I62nWuE6ilHlmz7zM0npLBRvPRd7e6NYmg54vvRtP5mZG7kZqZCFVdsTWo7BPtBujg==}
+
+  '@prisma/adapter-neon@5.22.0':
+    resolution: {integrity: sha512-yslwDPykmkVfrlyK3T9idewFcjINnqbkHZYJRxetoOZZSjBlJqqhsZxpJ/dEedUzeWaeDlWOgSEKjQKI46/A9w==}
+    peerDependencies:
+      '@neondatabase/serverless': ^0.6.0 || ^0.7.0 || ^0.8.0 || ^0.9.0 || ^0.10.0
 
   '@prisma/adapter-pg@5.22.0':
     resolution: {integrity: sha512-feLMrZtHD4qSG/Kk+GSQKyLsIpukDhMc4xucNz268NDiYxx0oviI9SA9M8dWX5BSPt2Qhr7Hqt8AVB6V/zvR1g==}
@@ -992,9 +999,6 @@ packages:
 
   '@types/node@20.19.39':
     resolution: {integrity: sha512-orrrD74MBUyK8jOAD/r0+lfa1I2MO6I+vAkmAWzMYbCcgrN4lCrmK52gRFQq/JRxfYPfonkr4b0jcY7Olqdqbw==}
-
-  '@types/node@22.19.17':
-    resolution: {integrity: sha512-wGdMcf+vPYM6jikpS/qhg6WiqSV/OhG+jeeHT/KlVqxYfD40iYJf9/AE1uQxVWFvU7MipKRkRv8NSHiCGgPr8Q==}
 
   '@types/pg@8.11.6':
     resolution: {integrity: sha512-/2WmmBXHLsfRqzfHW7BNZ8SbYzE8OSk7i3WjFYvfgRHj7S1xj+16Je5fUKv3lVdVzk/zn9TXOqf+avFCFIE0yQ==}
@@ -3975,14 +3979,13 @@ snapshots:
       '@tybys/wasm-util': 0.10.1
     optional: true
 
-  '@neondatabase/serverless@0.9.5':
+  '@neondatabase/serverless@0.10.0':
     dependencies:
       '@types/pg': 8.11.6
 
-  '@neondatabase/serverless@1.0.2':
+  '@neondatabase/serverless@0.9.5':
     dependencies:
-      '@types/node': 22.19.17
-      '@types/pg': 8.20.0
+      '@types/pg': 8.11.6
 
   '@next/env@16.2.3': {}
 
@@ -4044,6 +4047,12 @@ snapshots:
       outvariant: 1.4.3
 
   '@open-draft/until@2.1.0': {}
+
+  '@prisma/adapter-neon@5.22.0(@neondatabase/serverless@0.10.0)':
+    dependencies:
+      '@neondatabase/serverless': 0.10.0
+      '@prisma/driver-adapter-utils': 5.22.0
+      postgres-array: 3.0.2
 
   '@prisma/adapter-pg@5.22.0(pg@8.20.0)':
     dependencies:
@@ -4184,10 +4193,6 @@ snapshots:
   '@types/json5@0.0.29': {}
 
   '@types/node@20.19.39':
-    dependencies:
-      undici-types: 6.21.0
-
-  '@types/node@22.19.17':
     dependencies:
       undici-types: 6.21.0
 

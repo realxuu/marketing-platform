@@ -1,16 +1,13 @@
 import 'dotenv/config'
 import { PrismaClient } from '@prisma/client'
-import { PrismaPg } from '@prisma/adapter-pg'
-import { Pool } from 'pg'
+import { PrismaNeon } from '@prisma/adapter-neon'
+import { Pool } from '@neondatabase/serverless'
 
 function createPrismaClient() {
   if (process.env.POSTGRES_PRISMA_URL) {
-    const adapter = new PrismaPg(new Pool({
-      connectionString: process.env.POSTGRES_PRISMA_URL,
-      ssl: {
-        rejectUnauthorized: false,
-      },
-    }))
+    const adapter = new PrismaNeon(
+      new Pool({ connectionString: process.env.POSTGRES_PRISMA_URL })
+    )
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return new PrismaClient({ adapter } as any)
   }
