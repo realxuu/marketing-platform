@@ -7,6 +7,9 @@ function createPrismaClient() {
   if (process.env.POSTGRES_PRISMA_URL) {
     const adapter = new PrismaPg(new Pool({
       connectionString: process.env.POSTGRES_PRISMA_URL,
+      ssl: {
+        rejectUnauthorized: false,
+      },
     }))
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return new PrismaClient({ adapter } as any)
