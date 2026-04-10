@@ -1,0 +1,152 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// 用户
+model User {
+  id          String   @id @default(cuid())
+  phone       String   @unique
+  name        String?
+  plateNumber String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  members     Member[]
+  orders      Order[]
+}
+
+// 会员产品
+model MemberProduct {
+  id          String     @id @default(cuid())
+  name        String
+  type        String     // YEARLY / MONTHLY / PER_USE
+  price       Float
+  description String?
+  duration    Int?       // 有效期天数，次卡为null
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  orders      Order[]
+  members     Member[]
+  rights      ProductRight[]
+}
+
+// 权益
+model Right {
+  id          String         @id @default(cuid())
+  name        String
+  description String?
+  type        String         // SELF_OPERATED 自营 / COMMISSION 代销
+  isActive    Boolean        @default(true)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  products    ProductRight[]
+}
+
+// 产品-权益关联
+model ProductRight {
+  productId String
+  rightId   String
+  product   MemberProduct @relation(fields: [productId], references: [id])
+  right     Right         @relation(fields: [rightId], references: [id])
+
+  @@id([productId, rightId])
+}
+
+// 订单
+model Order {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  productId String
+  product   MemberProduct @relation(fields: [productId], references: [id])
+  amount    Float
+  status    String    @default("PENDING") // PENDING / PAID / CANCELLED / REFUNDED
+  payMethod String?   // WECHAT / ALIPAY
+  createdAt DateTime  @default(now())
+  paidAt    DateTime?
+  updatedAt DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+// 会员记录
+model Member {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  productId String
+  product   MemberProduct @relation(fields: [productId], references: [id])
+  status    String    @default("TRIAL") // TRIAL / ACTIVE / EXPIRED / CANCELLED
+  startDate DateTime
+  endDate   DateTime
+  isTrial   Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  billings  BillingRecord[]
+
+  @@index([userId])
+  @@index([status])
+}
+
+// 扣费记录
+model BillingRecord {
+  id        String   @id @default(cuid())
+  memberId  String
+  member    Member   @relation(fields: [memberId], references: [id])
+  amount    Float
+  type      String   @default("MEMBERSHIP_FEE") // MEMBERSHIP_FEE / TOLL_FEE
+  status    String   @default("SUCCESS") // SUCCESS / FAILED / PENDING
+  remark    String?
+  createdAt DateTime @default(now())
+
+  @@index([memberId])
+  @@index([type])
+}
+
+// 结算记录
+model Settlement {
+  id          String   @id @default(cuid())
+  type        String   // INCOME 收入 / EXPENSE 支出
+  amount      Float
+  description String?
+  status      String   @default("PENDING") // PENDING / COMPLETED
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// 权益发放记录
+model UserRight {
+  id          String   @id @default(cuid())
+  userId      String
+  rightId     String
+  memberId    String   // 关联会员记录
+  status      String   @default("ACTIVE") // ACTIVE 可用 / USED 已使用 / EXPIRED 已过期
+  totalCount  Int      @default(1) // 总次数
+  usedCount   Int      @default(0) // 已使用次数
+  expireAt    DateTime // 过期时间
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  usages      RightUsage[]
+
+  @@index([userId])
+  @@index([status])
+}
+
+// 权益使用记录（核销记录）
+model RightUsage {
+  id          String   @id @default(cuid())
+  userRightId String
+  userRight   UserRight @relation(fields: [userRightId], references: [id])
+  type        String   // RESCUE 救援 / REPLACE 更换 / INSURANCE 保险
+  description String?  // 使用说明
+  operator    String?  // 操作人
+  createdAt   DateTime @default(now())
+
+  @@index([userRightId])
+}

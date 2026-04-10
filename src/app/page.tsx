@@ -1,65 +1,171 @@
-import Image from "next/image";
+'use client'
 
-export default function Home() {
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Crown, Shield, Car, ChevronRight } from 'lucide-react'
+
+interface Product {
+  id: string
+  name: string
+  type: string
+  price: number
+  description: string | null
+  duration: number | null
+  rights: { right: { name: string; description: string | null } }[]
+}
+
+export default function HomePage() {
+  const [products, setProducts] = useState<Product[]>([])
+
+  useEffect(() => {
+    fetch('/api/products')
+      .then(res => res.json())
+      .then(setProducts)
+  }, [])
+
+  const getTypeBadge = (type: string) => {
+    const styles: Record<string, string> = {
+      YEARLY: 'bg-blue-500',
+      MONTHLY: 'bg-green-500',
+      PER_USE: 'bg-orange-500',
+    }
+    const labels: Record<string, string> = {
+      YEARLY: '年卡',
+      MONTHLY: '月卡',
+      PER_USE: '次卡',
+    }
+    return <Badge className={`${styles[type]} text-white`}>{labels[type]}</Badge>
+  }
+
+  const getPriceText = (product: Product) => {
+    if (product.type === 'PER_USE') {
+      return `¥${product.price}/次`
+    }
+    return `¥${product.price}/${product.type === 'YEARLY' ? '年' : '月'}`
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="min-h-screen">
+      {/* 头部横幅 */}
+      <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white">
+        <div className="max-w-md mx-auto px-4 py-8">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+              <Crown className="w-6 h-6" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">粤通卡会员服务</h1>
+              <p className="text-blue-100 text-sm">高速出行，权益护航</p>
+            </div>
+          </div>
+          <p className="text-blue-100 text-sm mb-4">
+            新用户享2个月免费体验期，高速救援、设备更换等专属权益等你来享
           </p>
+          <div className="flex gap-2">
+            <Link href="/member">
+              <Button variant="secondary" size="sm">我的会员</Button>
+            </Link>
+            <Link href="/billing">
+              <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">扣费记录</Button>
+            </Link>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </div>
+
+      {/* 产品列表 */}
+      <div className="max-w-md mx-auto px-4 py-6">
+        <h2 className="text-lg font-semibold mb-4">选择会员套餐</h2>
+        <div className="space-y-4">
+          {products.map((product) => (
+            <Card key={product.id} className="overflow-hidden">
+              <CardHeader className="pb-2">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <CardTitle className="text-lg">{product.name}</CardTitle>
+                    <CardDescription>{product.description}</CardDescription>
+                  </div>
+                  {getTypeBadge(product.type)}
+                </div>
+              </CardHeader>
+              <CardContent className="pb-2">
+                <div className="text-2xl font-bold text-blue-600 mb-3">
+                  {getPriceText(product)}
+                </div>
+                <div className="space-y-2">
+                  {product.rights.map((r, i) => (
+                    <div key={i} className="flex items-center gap-2 text-sm text-gray-600">
+                      <Shield className="w-4 h-4 text-green-500" />
+                      <span>{r.right.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+              <CardFooter className="bg-gray-50 pt-3">
+                <Link href={`/purchase?productId=${product.id}`} className="w-full">
+                  <Button className="w-full">
+                    立即开通
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </Link>
+              </CardFooter>
+            </Card>
+          ))}
         </div>
-      </main>
+
+        {/* 功能入口 */}
+        <div className="mt-8">
+          <h2 className="text-lg font-semibold mb-4">服务功能</h2>
+          <div className="grid grid-cols-2 gap-4">
+            <Link href="/rights">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="flex items-center gap-3 p-4">
+                  <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
+                    <Shield className="w-5 h-5 text-orange-600" />
+                  </div>
+                  <div>
+                    <div className="font-medium">权益中心</div>
+                    <div className="text-xs text-gray-500">查看会员权益</div>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+            <Link href="/billing">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="flex items-center gap-3 p-4">
+                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                    <Car className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <div className="font-medium">扣费记录</div>
+                    <div className="text-xs text-gray-500">查看费用明细</div>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* 底部导航 */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t">
+        <div className="max-w-md mx-auto flex">
+          <Link href="/" className="flex-1 flex flex-col items-center py-2 text-blue-600">
+            <Crown className="w-5 h-5" />
+            <span className="text-xs mt-1">首页</span>
+          </Link>
+          <Link href="/rights" className="flex-1 flex flex-col items-center py-2 text-gray-400">
+            <Shield className="w-5 h-5" />
+            <span className="text-xs mt-1">权益</span>
+          </Link>
+          <Link href="/member" className="flex-1 flex flex-col items-center py-2 text-gray-400">
+            <Car className="w-5 h-5" />
+            <span className="text-xs mt-1">我的</span>
+          </Link>
+        </div>
+      </nav>
     </div>
-  );
+  )
 }
