@@ -150,3 +150,33 @@ model RightUsage {
 
   @@index([userRightId])
 }
+
+// 系统参数配置
+model SystemConfig {
+  id          String   @id @default(cuid())
+  key         String   @unique // 配置键
+  value       String   // 配置值
+  description String?  // 配置说明
+  category    String   @default("GENERAL") // 分类: BILLING / MEMBER / GENERAL
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+}
+
+// 扣费日志
+model BillingLog {
+  id          String   @id @default(cuid())
+  userId      String
+  memberId    String?
+  type        String   // MEMBERSHIP_FEE / PER_USE_FEE
+  amount      Float
+  status      String   // SUCCESS / FAILED / PENDING / CAPPED
+  reason      String?  // 失败原因/封顶原因
+  month       String   // 月份 YYYY-MM，用于统计封顶
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([month])
+  @@index([status])
+}
