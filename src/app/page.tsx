@@ -18,11 +18,17 @@ interface Product {
 
 export default function HomePage() {
   const [products, setProducts] = useState<Product[]>([])
+  const [hasActiveMember, setHasActiveMember] = useState(false)
 
   useEffect(() => {
     fetch('/api/products')
       .then(res => res.json())
       .then(setProducts)
+    fetch('/api/members')
+      .then(res => res.json())
+      .then((members: { status: string }[]) => {
+        setHasActiveMember(members.some(m => ['TRIAL', 'ACTIVE', 'PENDING_CANCEL'].includes(m.status)))
+      })
   }, [])
 
   const getTypeBadge = (type: string) => {
@@ -95,12 +101,18 @@ export default function HomePage() {
                 </div>
               </CardContent>
               <CardFooter className="bg-gray-50 pt-3">
-                <Link href={`/purchase?productId=${product.id}`} className="w-full">
-                  <Button className="w-full">
-                    立即开通
-                    <ChevronRight className="w-4 h-4 ml-1" />
+                {hasActiveMember ? (
+                  <Button className="w-full" disabled variant="secondary">
+                    已开通会员
                   </Button>
-                </Link>
+                ) : (
+                  <Link href={`/purchase?productId=${product.id}`} className="w-full">
+                    <Button className="w-full">
+                      立即开通
+                      <ChevronRight className="w-4 h-4 ml-1" />
+                    </Button>
+                  </Link>
+                )}
               </CardFooter>
             </Card>
           ))}

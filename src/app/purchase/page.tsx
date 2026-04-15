@@ -25,6 +25,7 @@ function PurchaseContent() {
   const [showAgreement, setShowAgreement] = useState(false)
   const [agreementAccepted, setAgreementAccepted] = useState(false)
   const [showRightDetail, setShowRightDetail] = useState<string | null>(null)
+  const [hasActiveMember, setHasActiveMember] = useState(false)
 
   useEffect(() => {
     if (productId) {
@@ -35,6 +36,11 @@ function PurchaseContent() {
           setProduct(p || null)
         })
     }
+    fetch('/api/members')
+      .then(res => res.json())
+      .then((members: { status: string }[]) => {
+        setHasActiveMember(members.some(m => ['TRIAL', 'ACTIVE', 'PENDING_CANCEL'].includes(m.status)))
+      })
   }, [productId])
 
   const handlePay = async () => {
@@ -110,6 +116,25 @@ function PurchaseContent() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+      </div>
+    )
+  }
+
+  if (hasActiveMember) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <Card className="w-full max-w-md text-center">
+          <CardContent className="pt-8 pb-8">
+            <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Shield className="w-8 h-8 text-amber-600" />
+            </div>
+            <h2 className="text-xl font-semibold mb-2">您已有生效中的会员</h2>
+            <p className="text-gray-500 mb-4">每辆车只能购买一个会员产品，如需变更请先取消当前会员</p>
+            <Button onClick={() => window.location.href = '/member'} className="w-full">
+              查看我的会员
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     )
   }
