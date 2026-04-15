@@ -92,6 +92,23 @@ export async function POST(request: Request) {
       }
     })
 
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+      await fetch(`${baseUrl}/api/notify/yueyun`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          memberId: member.id,
+          action: 'MEMBER_ACTIVATED',
+          plateNumber: plateNumber || null,
+          plateColor: plateColor || null,
+          userId: order.userId,
+        }),
+      })
+    } catch (e) {
+      console.error('Failed to notify yueyun:', e)
+    }
+
     return NextResponse.json({
       success: true,
       member,

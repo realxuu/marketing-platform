@@ -71,13 +71,13 @@ function PurchaseContent() {
 
     await new Promise(resolve => setTimeout(resolve, 1500))
 
-    await fetch('/api/orders', {
-      method: 'PATCH',
+    await fetch('/api/activate', {
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        id: order.id,
-        status: 'PENDING_ACTIVATION',
-        agreementAccepted: true,
+        orderId: order.id,
+        plateNumber: null,
+        plateColor: null,
       }),
     })
 
@@ -93,10 +93,10 @@ function PurchaseContent() {
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Check className="w-8 h-8 text-green-600" />
             </div>
-            <h2 className="text-xl font-semibold mb-2">订单已提交</h2>
-            <p className="text-gray-500 mb-2">您已成功购买{product?.name}</p>
-            <p className="text-sm text-amber-600 mb-4">请激活ETC设备后自动开通会员权益</p>
-            <p className="text-xs text-gray-400 mb-4">激活后将获得2个月免费体验期</p>
+            <h2 className="text-xl font-semibold mb-2">开通成功</h2>
+            <p className="text-gray-500 mb-2">您已成功开通{product?.name}</p>
+            <p className="text-sm text-green-600 mb-4">ETC发行成功，会员权益已激活</p>
+            <p className="text-xs text-gray-400 mb-4">已开通2个月免费体验期，已通知粤运</p>
             <Button onClick={() => window.location.href = '/member'} className="w-full">
               查看我的会员
             </Button>
@@ -200,7 +200,7 @@ function PurchaseContent() {
           <p>• 新用户享2个月免费体验期</p>
           <p>• 体验期内可随时取消，不产生费用</p>
           <p>• 体验期满未取消将自动扣费</p>
-          <p>• 购买后需激活ETC设备才能开通会员权益</p>
+          <p>• ETC发行成功后自动激活会员权益</p>
         </div>
 
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4">
