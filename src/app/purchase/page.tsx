@@ -19,7 +19,7 @@ function PurchaseContent() {
   const searchParams = useSearchParams()
   const productId = searchParams.get('productId')
   const [product, setProduct] = useState<Product | null>(null)
-  const [payMethod, setPayMethod] = useState<'WECHAT' | 'ALIPAY' | 'UNIONPAY'>('WECHAT')
+  const [channel, setChannel] = useState<string>('WECHAT')
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [showAgreement, setShowAgreement] = useState(false)
@@ -62,8 +62,8 @@ function PurchaseContent() {
         userId: demoUserId,
         productId: product.id,
         amount: product.price,
-        payMethod,
-        channel: payMethod,
+        payMethod: channel,
+        channel,
         agreementAccepted: true,
       }),
     })
@@ -159,48 +159,17 @@ function PurchaseContent() {
           <CardHeader className="pb-2">
             <CardTitle className="text-base">签约渠道</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <div
-              onClick={() => setPayMethod('WECHAT')}
-              className={`flex items-center justify-between p-3 rounded-lg border-2 cursor-pointer transition-colors ${
-                payMethod === 'WECHAT' ? 'border-green-500 bg-green-50' : 'border-gray-200'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-green-500 rounded flex items-center justify-center text-white text-xs font-bold">微</div>
-                <span>微信支付</span>
+          <CardContent>
+            <div className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 bg-gray-50">
+              <div className={`w-8 h-8 rounded flex items-center justify-center text-white text-xs font-bold ${
+                channel === 'WECHAT' ? 'bg-green-500' : channel === 'ALIPAY' ? 'bg-blue-500' : 'bg-red-500'
+              }`}>
+                {channel === 'WECHAT' ? '微' : channel === 'ALIPAY' ? '支' : '银'}
               </div>
-              {payMethod === 'WECHAT' && <Check className="w-5 h-5 text-green-500" />}
-            </div>
-            <div
-              onClick={() => setPayMethod('ALIPAY')}
-              className={`flex items-center justify-between p-3 rounded-lg border-2 cursor-pointer transition-colors ${
-                payMethod === 'ALIPAY' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-blue-500 rounded flex items-center justify-center text-white text-xs font-bold">支</div>
-                <div>
-                  <span>支付宝</span>
-                  <span className="text-xs text-amber-600 ml-2">需2次签约</span>
-                </div>
-              </div>
-              {payMethod === 'ALIPAY' && <Check className="w-5 h-5 text-blue-500" />}
-            </div>
-            <div
-              onClick={() => setPayMethod('UNIONPAY')}
-              className={`flex items-center justify-between p-3 rounded-lg border-2 cursor-pointer transition-colors ${
-                payMethod === 'UNIONPAY' ? 'border-red-500 bg-red-50' : 'border-gray-200'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-red-500 rounded flex items-center justify-center text-white text-xs font-bold">银</div>
-                <div>
-                  <span>银联云闪付</span>
-                  <span className="text-xs text-gray-500 ml-2">无需2次签约</span>
-                </div>
-              </div>
-              {payMethod === 'UNIONPAY' && <Check className="w-5 h-5 text-red-500" />}
+              <span className="font-medium">
+                {channel === 'WECHAT' ? '微信支付' : channel === 'ALIPAY' ? '支付宝' : '银联云闪付'}
+              </span>
+              <span className="text-xs text-gray-400 ml-auto">ETC发行时已签约</span>
             </div>
           </CardContent>
         </Card>
