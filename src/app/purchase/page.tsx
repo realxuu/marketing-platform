@@ -19,7 +19,7 @@ function PurchaseContent() {
   const searchParams = useSearchParams()
   const productId = searchParams.get('productId')
   const [product, setProduct] = useState<Product | null>(null)
-  const [channel, setChannel] = useState<string>('WECHAT')
+  const [channel, setChannel] = useState<string>('ALIPAY')
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [showAgreement, setShowAgreement] = useState(false)

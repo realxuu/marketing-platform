@@ -13,7 +13,6 @@ interface Product {
   type: string
   price: number
   description: string | null
-  duration: number | null
   rights: { right: { name: string; description: string | null } }[]
 }
 
@@ -68,8 +67,8 @@ export default function HomePage() {
             <Link href="/member">
               <Button variant="secondary" size="sm">我的会员</Button>
             </Link>
-            <Link href="/billing">
-              <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">扣费记录</Button>
+            <Link href="/rights">
+              <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">权益中心</Button>
             </Link>
           </div>
         </div>
@@ -132,15 +131,15 @@ export default function HomePage() {
                 </CardContent>
               </Card>
             </Link>
-            <Link href="/billing">
+            <Link href="/member">
               <Card className="hover:shadow-md transition-shadow cursor-pointer">
                 <CardContent className="flex items-center gap-3 p-4">
-                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                    <Car className="w-5 h-5 text-green-600" />
+                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                    <Car className="w-5 h-5 text-blue-600" />
                   </div>
                   <div>
-                    <div className="font-medium">扣费记录</div>
-                    <div className="text-xs text-gray-500">查看费用明细</div>
+                    <div className="font-medium">我的会员</div>
+                    <div className="text-xs text-gray-500">管理会员服务</div>
                   </div>
                 </CardContent>
               </Card>
