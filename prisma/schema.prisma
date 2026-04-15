@@ -7,47 +7,61 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// 用户
 model User {
-  id          String   @id @default(cuid())
-  phone       String   @unique
+  id          String     @id @default(cuid())
+  phone       String     @unique
   name        String?
   plateNumber String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  members     Member[]
-  orders      Order[]
-}
-
-// 会员产品
-model MemberProduct {
-  id          String     @id @default(cuid())
-  name        String
-  type        String     // YEARLY / MONTHLY / PER_USE
-  price       Float
-  description String?
-  duration    Int?       // 有效期天数，次卡为null
-  isActive    Boolean    @default(true)
+  plateColor  String?    // BLUE / YELLOW / GREEN
+  idNumber    String?    // 证件号码，同步给粤运
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
-  orders      Order[]
   members     Member[]
-  rights      ProductRight[]
+  orders      Order[]
+  vehicles    Vehicle[]
 }
 
-// 权益
+model Vehicle {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  plateNumber String
+  plateColor  String   // BLUE / YELLOW / GREEN
+  isPrimary   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+}
+
+model MemberProduct {
+  id                 String        @id @default(cuid())
+  name               String
+  type               String        // YEARLY / MONTHLY / PER_USE
+  price              Float
+  description        String?
+  effectiveStartTime DateTime?     // 生效起始时间
+  isActive           Boolean       @default(true)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  orders             Order[]
+  members            Member[]
+  rights             ProductRight[]
+}
+
 model Right {
   id          String         @id @default(cuid())
   name        String
   description String?
-  type        String         // SELF_OPERATED 自营 / COMMISSION 代销
+  totalLimit  Int?           // 总量控制，null表示不限制
+  currentTotal Int           @default(0) // 已发放总量
+  detailHtml  String?        // 权益详情展示HTML
   isActive    Boolean        @default(true)
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
   products    ProductRight[]
+  userRights  UserRight[]
 }
 
-// 产品-权益关联
 model ProductRight {
   productId String
   rightId   String
@@ -57,44 +71,50 @@ model ProductRight {
   @@id([productId, rightId])
 }
 
-// 订单
 model Order {
-  id        String    @id @default(cuid())
-  userId    String
-  user      User      @relation(fields: [userId], references: [id])
-  productId String
-  product   MemberProduct @relation(fields: [productId], references: [id])
-  amount    Float
-  status    String    @default("PENDING") // PENDING / PAID / CANCELLED / REFUNDED
-  payMethod String?   // WECHAT / ALIPAY
-  createdAt DateTime  @default(now())
-  paidAt    DateTime?
-  updatedAt DateTime  @updatedAt
+  id                String    @id @default(cuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id])
+  productId         String
+  product           MemberProduct @relation(fields: [productId], references: [id])
+  amount            Float
+  status            String    @default("PENDING") // PENDING / PAID / PENDING_ACTIVATION / CANCELLED / REFUNDED
+  payMethod         String?   // WECHAT / ALIPAY / UNIONPAY
+  channel           String?   // 签约渠道：WECHAT / ALIPAY / UNIONPAY
+  isActivated       Boolean   @default(false)
+  activatedAt       DateTime?
+  agreementAccepted Boolean   @default(false)
+  createdAt         DateTime  @default(now())
+  paidAt            DateTime?
+  updatedAt         DateTime  @updatedAt
 
   @@index([userId])
   @@index([status])
 }
 
-// 会员记录
 model Member {
-  id        String    @id @default(cuid())
-  userId    String
-  user      User      @relation(fields: [userId], references: [id])
-  productId String
-  product   MemberProduct @relation(fields: [productId], references: [id])
-  status    String    @default("TRIAL") // TRIAL / ACTIVE / EXPIRED / CANCELLED
-  startDate DateTime
-  endDate   DateTime
-  isTrial   Boolean   @default(true)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  billings  BillingRecord[]
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id])
+  productId       String
+  product         MemberProduct @relation(fields: [productId], references: [id])
+  status          String    @default("TRIAL") // TRIAL / ACTIVE / EXPIRED / CANCELLED / PENDING_CANCEL
+  startDate       DateTime
+  endDate         DateTime
+  isTrial         Boolean   @default(true)
+  cancelReason    String?   // USER_CANCEL / ADMIN_CANCEL / BILLING_FAILED / ETC_CANCELLED
+  cancelAt        DateTime?
+  warrantyEndDate DateTime? // 维保到期日期
+  plateNumber     String?   // 绑定车牌
+  plateColor      String?   // 车牌颜色
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  billings        BillingRecord[]
 
   @@index([userId])
   @@index([status])
 }
 
-// 扣费记录
 model BillingRecord {
   id        String   @id @default(cuid())
   memberId  String
@@ -109,10 +129,9 @@ model BillingRecord {
   @@index([type])
 }
 
-// 结算记录
 model Settlement {
   id          String   @id @default(cuid())
-  type        String   // INCOME 收入 / EXPENSE 支出
+  type        String   // INCOME / EXPENSE
   amount      Float
   description String?
   status      String   @default("PENDING") // PENDING / COMPLETED
@@ -120,63 +139,76 @@ model Settlement {
   updatedAt   DateTime @updatedAt
 }
 
-// 权益发放记录
 model UserRight {
-  id          String   @id @default(cuid())
-  userId      String
-  rightId     String
-  memberId    String   // 关联会员记录
-  status      String   @default("ACTIVE") // ACTIVE 可用 / USED 已使用 / EXPIRED 已过期
-  totalCount  Int      @default(1) // 总次数
-  usedCount   Int      @default(0) // 已使用次数
-  expireAt    DateTime // 过期时间
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  usages      RightUsage[]
+  id              String        @id @default(cuid())
+  userId          String
+  rightId         String
+  right           Right         @relation(fields: [rightId], references: [id])
+  memberId        String        // 关联会员记录
+  status          String        @default("ACTIVE") // ACTIVE / USED / EXPIRED
+  totalCount      Int           @default(1)
+  usedCount       Int           @default(0)
+  expireAt        DateTime
+  rightDisabledAt DateTime?     // 权益被禁用的时间，旧会员保留权益至会员期结束
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  usages          RightUsage[]
 
   @@index([userId])
   @@index([status])
 }
 
-// 权益使用记录（核销记录）
 model RightUsage {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   userRightId String
   userRight   UserRight @relation(fields: [userRightId], references: [id])
-  type        String   // RESCUE 救援 / REPLACE 更换 / INSURANCE 保险
-  description String?  // 使用说明
-  operator    String?  // 操作人
-  createdAt   DateTime @default(now())
+  type        String    // RESCUE / REPLACE / INSURANCE
+  description String?
+  operator    String?
+  createdAt   DateTime  @default(now())
 
   @@index([userRightId])
 }
 
-// 系统参数配置
 model SystemConfig {
   id          String   @id @default(cuid())
-  key         String   @unique // 配置键
-  value       String   // 配置值
-  description String?  // 配置说明
-  category    String   @default("GENERAL") // 分类: BILLING / MEMBER / GENERAL
+  key         String   @unique
+  value       String
+  description String?
+  category    String   @default("GENERAL") // BILLING / MEMBER / GENERAL
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([category])
 }
 
-// 扣费日志
 model BillingLog {
-  id          String   @id @default(cuid())
-  userId      String
-  memberId    String?
-  type        String   // MEMBERSHIP_FEE / PER_USE_FEE
-  amount      Float
-  status      String   // SUCCESS / FAILED / PENDING / CAPPED
-  reason      String?  // 失败原因/封顶原因
-  month       String   // 月份 YYYY-MM，用于统计封顶
-  createdAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  userId    String
+  memberId  String?
+  type      String   // MEMBERSHIP_FEE / PER_USE_FEE
+  amount    Float
+  status    String   // SUCCESS / FAILED / PENDING / CAPPED
+  reason    String?
+  month     String   // YYYY-MM
+  createdAt DateTime @default(now())
 
   @@index([userId])
   @@index([month])
+  @@index([status])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   // TRIAL_EXPIRING / BILLING_REMINDER / BILLING_FAILED / CANCEL_CONFIRM / MEMBER_STATUS_CHANGE
+  title     String
+  content   String
+  channel   String   // SMS / PUSH / IN_APP
+  status    String   @default("PENDING") // PENDING / SENT / FAILED
+  sentAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
   @@index([status])
 }

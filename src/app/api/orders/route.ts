@@ -30,8 +30,10 @@ export async function POST(request: Request) {
         userId: data.userId,
         productId: data.productId,
         amount: data.amount,
-        status: 'PENDING',
+        status: 'PENDING_ACTIVATION',
         payMethod: data.payMethod,
+        channel: data.channel,
+        agreementAccepted: data.agreementAccepted ?? false,
       },
       include: { product: true, user: true }
     })
@@ -47,59 +49,25 @@ export async function PATCH(request: Request) {
   try {
     const data = await request.json()
 
+    const updateData: Record<string, unknown> = {
+      status: data.status,
+    }
+
+    if (data.status === 'PAID') {
+      updateData.paidAt = new Date()
+    }
+
+    if (data.status === 'PENDING_ACTIVATION') {
+      updateData.agreementAccepted = data.agreementAccepted ?? true
+    }
+
     const order = await prisma.order.update({
       where: { id: data.id },
-      data: {
-        status: data.status,
-        paidAt: data.status === 'PAID' ? new Date() : undefined,
-      },
+      data: updateData,
       include: { product: true, user: true }
     })
 
-    // 支付成功后创建会员记录并发放权益
-    if (data.status === 'PAID') {
-      const product = await prisma.memberProduct.findUnique({
-        where: { id: order.productId },
-        include: {
-          rights: {
-            include: { right: true }
-          }
-        }
-      })
-
-      if (product) {
-        // 创建会员记录
-        const member = await prisma.member.create({
-          data: {
-            userId: order.userId,
-            productId: order.productId,
-            status: 'TRIAL',
-            startDate: new Date(),
-            endDate: new Date(Date.now() + 61 * 24 * 60 * 60 * 1000), // 61天试用期
-            isTrial: true,
-          }
-        })
-
-        // 发放权益
-        for (const pr of product.rights) {
-          await prisma.userRight.create({
-            data: {
-              userId: order.userId,
-              rightId: pr.rightId,
-              memberId: member.id,
-              status: 'ACTIVE',
-              totalCount: 1,
-              usedCount: 0,
-              expireAt: member.endDate,
-            }
-          })
-        }
-      }
-    }
-
-    // 退款时收回权益
     if (data.status === 'REFUNDED') {
-      // 查找相关会员
       const member = await prisma.member.findFirst({
         where: {
           userId: order.userId,
@@ -108,7 +76,6 @@ export async function PATCH(request: Request) {
       })
 
       if (member) {
-        // 标记权益为已过期
         await prisma.userRight.updateMany({
           where: { memberId: member.id },
           data: { status: 'EXPIRED' }

@@ -23,7 +23,7 @@ export async function POST(request: Request) {
         type: data.type,
         price: parseFloat(data.price),
         description: data.description,
-        duration: data.duration ? parseInt(data.duration) : null,
+        effectiveStartTime: data.effectiveStartTime ? new Date(data.effectiveStartTime) : null,
         isActive: true,
         rights: data.rightIds?.length > 0 ? {
           create: data.rightIds.map((rightId: string) => ({
@@ -47,7 +47,6 @@ export async function PATCH(request: Request) {
   try {
     const data = await request.json()
 
-    // 如果是更新状态
     if (data.isActive !== undefined && !data.name) {
       const product = await prisma.memberProduct.update({
         where: { id: data.id },
@@ -56,24 +55,25 @@ export async function PATCH(request: Request) {
       return NextResponse.json(product)
     }
 
-    // 更新产品信息
+    const updateData: Record<string, unknown> = {
+      name: data.name,
+      price: parseFloat(data.price),
+      description: data.description,
+    }
+
+    if (data.effectiveStartTime !== undefined) {
+      updateData.effectiveStartTime = data.effectiveStartTime ? new Date(data.effectiveStartTime) : null
+    }
+
     const product = await prisma.memberProduct.update({
       where: { id: data.id },
-      data: {
-        name: data.name,
-        price: parseFloat(data.price),
-        description: data.description,
-        duration: data.duration ? parseInt(data.duration) : null,
-      }
+      data: updateData,
     })
 
-    // 更新权益关联
     if (data.rightIds) {
-      // 先删除现有关联
       await prisma.productRight.deleteMany({
         where: { productId: data.id }
       })
-      // 创建新关联
       if (data.rightIds.length > 0) {
         await prisma.productRight.createMany({
           data: data.rightIds.map((rightId: string) => ({
