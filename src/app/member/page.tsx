@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Crown, Shield, Car, Calendar, ChevronRight, LogOut, AlertTriangle, ChevronDown } from 'lucide-react'
+import { Crown, Shield, Car, ChevronRight, LogOut, AlertTriangle, ChevronDown } from 'lucide-react'
 import { format } from 'date-fns'
 
 interface Member {
@@ -18,7 +18,6 @@ interface Member {
   plateColor: string | null
   cancelReason: string | null
   cancelAt: string | null
-  warrantyEndDate: string | null
   product: {
     id: string
     name: string
@@ -50,10 +49,7 @@ export default function MemberPage() {
   }, [])
 
   useEffect(() => {
-    if (!showCancelDialog) {
-      setCountdown(5)
-      return
-    }
+    if (!showCancelDialog) { setCountdown(5); return }
     if (countdown <= 0) return
     const timer = setTimeout(() => setCountdown(c => c - 1), 1000)
     return () => clearTimeout(timer)
@@ -76,33 +72,23 @@ export default function MemberPage() {
     ETC_CANCELLED: 'ETC注销取消',
   }
 
-  const plateColorMap: Record<string, string> = {
-    BLUE: '蓝色',
-    YELLOW: '黄色',
-    GREEN: '绿色',
-  }
+  const plateColorMap: Record<string, string> = { BLUE: '蓝', YELLOW: '黄', GREEN: '绿' }
+  const plateColorDot: Record<string, string> = { BLUE: 'bg-blue-500', YELLOW: 'bg-yellow-500', GREEN: 'bg-green-500' }
 
-  const plateColorBg: Record<string, string> = {
-    BLUE: 'bg-blue-600',
-    YELLOW: 'bg-yellow-500',
-    GREEN: 'bg-green-600',
-  }
+  const daysLeft = currentMember
+    ? Math.max(0, Math.ceil((new Date(currentMember.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    : 0
 
   const handleCancel = async () => {
     if (!currentMember) return
     setCancelling(true)
-
     try {
       const res = await fetch('/api/members/cancel', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          memberId: currentMember.id,
-          cancelReason: 'USER_CANCEL',
-        }),
+        body: JSON.stringify({ memberId: currentMember.id, cancelReason: 'USER_CANCEL' }),
       })
       const data = await res.json()
-
       if (data.success) {
         setMembers(members.map(m =>
           m.id === currentMember.id
@@ -130,154 +116,138 @@ export default function MemberPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-4 py-6">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-lg font-semibold">我的会员</h1>
-          <Link href="/admin" className="text-xs text-blue-200 hover:text-white">管理后台</Link>
-        </div>
-
-        {members.length > 1 && (
-          <div className="mb-3 relative">
-            <button
-              onClick={() => setShowPlatePicker(!showPlatePicker)}
-              className="flex items-center gap-2 text-sm bg-white/15 rounded-lg px-3 py-2 w-full"
-            >
-              <Car className="w-4 h-4" />
-              <span className="flex-1 text-left">
-                {currentMember?.plateNumber
-                  ? `${plateColorMap[currentMember.plateColor || 'BLUE'] || ''} ${currentMember.plateNumber}`
-                  : '选择车辆'}
-              </span>
-              <ChevronDown className="w-4 h-4" />
-            </button>
-            {showPlatePicker && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-lg z-10 overflow-hidden">
-                {members.map(m => (
-                  <button
-                    key={m.id}
-                    onClick={() => { setSelectedPlate(m.plateNumber); setShowPlatePicker(false) }}
-                    className={`flex items-center gap-3 w-full px-4 py-3 text-left text-sm hover:bg-gray-50 ${
-                      m.plateNumber === selectedPlate ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
-                    }`}
-                  >
-                    <span className={`w-2 h-2 rounded-full ${plateColorBg[m.plateColor || 'BLUE']}`} />
-                    <span>{plateColorMap[m.plateColor || 'BLUE'] || ''} {m.plateNumber}</span>
-                    <Badge className={`ml-auto text-xs ${statusMap[m.status]?.bg} ${statusMap[m.status]?.color}`}>
-                      {statusMap[m.status]?.label}
-                    </Badge>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {currentMember && (
-          <Card className="bg-white/10 border-0 backdrop-blur">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <Crown className="w-6 h-6 text-yellow-400" />
-                  <span className="font-medium">{currentMember.product.name}</span>
+      {/* 顶部会员卡 */}
+      <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white px-4 pt-12 pb-8 rounded-b-3xl">
+        <div className="max-w-md mx-auto">
+          {/* 车牌切换 */}
+          {members.length > 1 && (
+            <div className="mb-4 relative">
+              <button
+                onClick={() => setShowPlatePicker(!showPlatePicker)}
+                className="flex items-center gap-2 text-sm bg-white/15 rounded-full px-4 py-1.5"
+              >
+                <span className={`w-2 h-2 rounded-full ${plateColorDot[currentMember?.plateColor || 'BLUE']}`} />
+                <span>{currentMember?.plateNumber || '选择车辆'}</span>
+                <ChevronDown className="w-3.5 h-3.5" />
+              </button>
+              {showPlatePicker && (
+                <div className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-xl z-10 overflow-hidden min-w-[200px]">
+                  {members.map(m => (
+                    <button
+                      key={m.id}
+                      onClick={() => { setSelectedPlate(m.plateNumber); setShowPlatePicker(false) }}
+                      className={`flex items-center gap-3 w-full px-4 py-3 text-left text-sm hover:bg-gray-50 ${
+                        m.plateNumber === selectedPlate ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+                      }`}
+                    >
+                      <span className={`w-2 h-2 rounded-full ${plateColorDot[m.plateColor || 'BLUE']}`} />
+                      <span>{m.plateNumber}</span>
+                      <Badge className={`ml-auto text-xs ${statusMap[m.status]?.bg} ${statusMap[m.status]?.color}`}>
+                        {statusMap[m.status]?.label}
+                      </Badge>
+                    </button>
+                  ))}
                 </div>
-                <Badge className={`${statusMap[currentMember.status]?.bg} ${statusMap[currentMember.status]?.color}`}>
+              )}
+            </div>
+          )}
+
+          {!currentMember ? (
+            <div className="text-center py-6">
+              <Crown className="w-12 h-12 text-white/40 mx-auto mb-3" />
+              <p className="text-white/70 mb-4">您还未开通会员</p>
+              <Link href="/">
+                <Button className="bg-white text-blue-700 hover:bg-white/90">立即开通</Button>
+              </Link>
+            </div>
+          ) : (
+            <>
+              {/* 会员卡主体 */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-yellow-400/20 rounded-full flex items-center justify-center">
+                    <Crown className="w-5 h-5 text-yellow-300" />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-lg">{currentMember.product.name}</div>
+                    {currentMember.plateNumber && (
+                      <div className="text-blue-200 text-xs flex items-center gap-1">
+                        <span className={`w-1.5 h-1.5 rounded-full ${plateColorDot[currentMember.plateColor || 'BLUE']}`} />
+                        {currentMember.plateNumber}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <Badge className={`${statusMap[currentMember.status]?.bg} ${statusMap[currentMember.status]?.color} text-xs`}>
                   {statusMap[currentMember.status]?.label}
                 </Badge>
               </div>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <div className="text-blue-200">有效期至</div>
-                  <div className="font-medium">{format(new Date(currentMember.endDate), 'yyyy-MM-dd')}</div>
+
+              {/* 关键数据 */}
+              <div className="grid grid-cols-3 gap-4 bg-white/10 rounded-2xl p-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold">{daysLeft}</div>
+                  <div className="text-blue-200 text-xs mt-0.5">{currentMember.isTrial ? '试用剩余' : '剩余天数'}</div>
                 </div>
-                <div>
-                  <div className="text-blue-200">{currentMember.isTrial ? '试用剩余' : '剩余天数'}</div>
-                  <div className="font-medium">
-                    {Math.max(0, Math.ceil((new Date(currentMember.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))} 天
-                  </div>
+                <div className="text-center border-x border-white/10">
+                  <div className="text-sm font-medium">{format(new Date(currentMember.startDate), 'MM/dd')}</div>
+                  <div className="text-blue-200 text-xs mt-0.5">开通日期</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-sm font-medium">{format(new Date(currentMember.endDate), 'MM/dd')}</div>
+                  <div className="text-blue-200 text-xs mt-0.5">到期日期</div>
                 </div>
               </div>
-              {currentMember.plateNumber && (
-                <div className="mt-3 pt-3 border-t border-white/20 text-sm">
-                  <div className="text-blue-200">绑定车牌</div>
-                  <div className="font-medium">
-                    {plateColorMap[currentMember.plateColor || 'BLUE'] || ''} {currentMember.plateNumber}
-                  </div>
-                </div>
-              )}
-              {currentMember.warrantyEndDate && (
-                <div className="mt-1 text-sm">
-                  <div className="text-blue-200">维保到期</div>
-                  <div className="font-medium">{format(new Date(currentMember.warrantyEndDate), 'yyyy-MM-dd')}</div>
-                </div>
-              )}
-              {currentMember.isTrial && (
-                <div className="mt-2 text-sm text-orange-300">
-                  免费体验期中
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-      </div>
 
-      <div className="max-w-md mx-auto p-4">
-        {!currentMember ? (
-          <Card className="text-center py-8">
-            <CardContent>
-              <Crown className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 mb-4">您还未开通会员</p>
-              <Link href="/"><Button>立即开通</Button></Link>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-4">
-            {currentMember.status === 'PENDING_CANCEL' && (
-              <Card className="border-amber-200 bg-amber-50">
-                <CardContent className="p-4">
+              {/* 体验期提示 */}
+              {currentMember.isTrial && (
+                <div className="mt-3 text-center text-sm text-orange-200 bg-orange-500/20 rounded-full py-1.5">
+                  🎉 免费体验期中，到期后自动扣费
+                </div>
+              )}
+
+              {/* 待取消提示 */}
+              {currentMember.status === 'PENDING_CANCEL' && (
+                <div className="mt-3 bg-amber-500/20 rounded-xl p-3">
                   <div className="flex items-start gap-2">
-                    <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5" />
-                    <div className="text-sm text-amber-800">
-                      <p className="font-medium mb-1">会员取消中</p>
-                      <p>权益将保留至 {format(new Date(currentMember.endDate), 'yyyy-MM-dd')} 到期，到期后正式取消。</p>
-                      {currentMember.cancelReason && (
-                        <p className="mt-1">取消原因：{cancelReasonMap[currentMember.cancelReason]}</p>
-                      )}
+                    <AlertTriangle className="w-4 h-4 text-amber-300 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm text-amber-100">
+                      <p className="font-medium">会员取消中</p>
+                      <p className="text-amber-200 text-xs mt-0.5">
+                        权益保留至 {format(new Date(currentMember.endDate), 'yyyy-MM-dd')} 到期
+                        {currentMember.cancelReason && ` · ${cancelReasonMap[currentMember.cancelReason]}`}
+                      </p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            )}
-
-            <Card>
-              <CardContent className="p-0">
-                <Link href="/rights" className="flex items-center justify-between p-4 border-b hover:bg-gray-50">
-                  <div className="flex items-center gap-3">
-                    <Shield className="w-5 h-5 text-gray-400" />
-                    <span>权益中心</span>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-gray-400" />
-                </Link>
-                <Link href="/billing" className="flex items-center justify-between p-4 border-b hover:bg-gray-50">
-                  <div className="flex items-center gap-3">
-                    <Calendar className="w-5 h-5 text-gray-400" />
-                    <span>扣费记录</span>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-gray-400" />
-                </Link>
-                <div className="flex items-center justify-between p-4 hover:bg-gray-50 cursor-pointer">
-                  <div className="flex items-center gap-3">
-                    <Car className="w-5 h-5 text-gray-400" />
-                    <span>车辆管理</span>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-gray-400" />
                 </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* 功能区域 */}
+      <div className="max-w-md mx-auto px-4 -mt-2">
+        {currentMember && (
+          <div className="space-y-3 mt-4">
+            <Card className="overflow-hidden">
+              <CardContent className="p-0">
+                <Link href="/rights" className="flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                      <Shield className="w-4 h-4 text-orange-600" />
+                    </div>
+                    <span className="text-sm font-medium">权益中心</span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-gray-300" />
+                </Link>
               </CardContent>
             </Card>
 
             {currentMember.status !== 'CANCELLED' && currentMember.status !== 'EXPIRED' && currentMember.status !== 'PENDING_CANCEL' && (
               <Button
                 variant="outline"
-                className="w-full text-red-600 border-red-200 hover:bg-red-50"
+                className="w-full text-red-500 border-gray-200 hover:bg-red-50 hover:border-red-200 h-11"
                 onClick={() => setShowCancelDialog(true)}
               >
                 <LogOut className="w-4 h-4 mr-2" />
@@ -285,17 +255,16 @@ export default function MemberPage() {
               </Button>
             )}
 
-            <div className="text-xs text-gray-400 space-y-1">
+            <div className="text-xs text-gray-400 px-1 space-y-1 pt-1">
               <p>• 每辆车只能购买一个会员产品</p>
-              <p>• 体验期内取消即时生效</p>
+              <p>• 体验期内取消即时生效，不产生费用</p>
               <p>• 会员生效后取消，权益保留至到期日</p>
-              <p>• 已扣费会员原则上不予退款</p>
-              <p>• 取消后只换不修服务延续至会员期结束</p>
             </div>
           </div>
         )}
       </div>
 
+      {/* 取消确认弹窗 */}
       {showCancelDialog && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <Card className="w-full max-w-md">
@@ -309,7 +278,7 @@ export default function MemberPage() {
               </div>
               <div className="text-sm text-gray-600 space-y-2 mb-6">
                 <p>1. 取消后权益将保留至 {currentMember ? format(new Date(currentMember.endDate), 'yyyy-MM-dd') : '到期日'}，到期后正式取消。</p>
-                <p>2. 只换不修服务将延续至会员期结束，到期后维保期恢复为产品发行时记录的维保期。</p>
+                <p>2. 只换不修服务将延续至会员期结束。</p>
                 <p>3. 取消后不进行退款。</p>
                 <p>4. 取消后将通知粤运暂停权益服务。</p>
               </div>
@@ -324,19 +293,17 @@ export default function MemberPage() {
         </div>
       )}
 
+      {/* 底部导航 */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t">
         <div className="max-w-md mx-auto flex">
           <Link href="/" className="flex-1 flex flex-col items-center py-2 text-gray-400">
-            <Crown className="w-5 h-5" />
-            <span className="text-xs mt-1">首页</span>
+            <Crown className="w-5 h-5" /><span className="text-xs mt-1">首页</span>
           </Link>
           <Link href="/rights" className="flex-1 flex flex-col items-center py-2 text-gray-400">
-            <Shield className="w-5 h-5" />
-            <span className="text-xs mt-1">权益</span>
+            <Shield className="w-5 h-5" /><span className="text-xs mt-1">权益</span>
           </Link>
           <Link href="/member" className="flex-1 flex flex-col items-center py-2 text-blue-600">
-            <Car className="w-5 h-5" />
-            <span className="text-xs mt-1">我的</span>
+            <Car className="w-5 h-5" /><span className="text-xs mt-1">我的</span>
           </Link>
         </div>
       </nav>
