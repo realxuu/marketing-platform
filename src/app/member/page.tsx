@@ -190,11 +190,11 @@ export default function MemberPage() {
                   <div className="text-blue-200 text-xs mt-0.5">{currentMember.isTrial ? '试用剩余' : '剩余天数'}</div>
                 </div>
                 <div className="text-center border-x border-white/10">
-                  <div className="text-sm font-medium">{format(new Date(currentMember.startDate), 'MM/dd')}</div>
+                  <div className="text-2xl font-bold">{format(new Date(currentMember.startDate), 'MM/dd')}</div>
                   <div className="text-blue-200 text-xs mt-0.5">开通日期</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-sm font-medium">{format(new Date(currentMember.endDate), 'MM/dd')}</div>
+                  <div className="text-2xl font-bold">{format(new Date(currentMember.endDate), 'MM/dd')}</div>
                   <div className="text-blue-200 text-xs mt-0.5">到期日期</div>
                 </div>
               </div>

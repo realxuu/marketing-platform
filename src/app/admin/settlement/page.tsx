@@ -104,10 +104,10 @@ export default function SettlementPage() {
             <DollarSign className="w-5 h-5" />
             <span>结算对账</span>
           </Link>
-          <Link href="/admin/settings" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white">
+          {/* <Link href="/admin/settings" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white">
             <Settings className="w-5 h-5" />
             <span>系统配置</span>
-          </Link>
+          </Link> */}
         </nav>
       </aside>
 

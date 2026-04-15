@@ -107,7 +107,7 @@ export default function RightsPage() {
           <Link href="/admin/members" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white"><Users className="w-5 h-5" /><span>会员管理</span></Link>
           <Link href="/admin/billing-control" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white"><CreditCard className="w-5 h-5" /><span>扣费控制</span></Link>
           <Link href="/admin/settlement" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white"><DollarSign className="w-5 h-5" /><span>结算对账</span></Link>
-          <Link href="/admin/settings" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white"><Settings className="w-5 h-5" /><span>系统配置</span></Link>
+          {/* <Link href="/admin/settings" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white"><Settings className="w-5 h-5" /><span>系统配置</span></Link> */}
         </nav>
       </aside>
 
