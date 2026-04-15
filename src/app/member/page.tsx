@@ -5,8 +5,16 @@ import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Crown, Shield, Car, ChevronRight, LogOut, AlertTriangle, ChevronDown } from 'lucide-react'
+import { Crown, Shield, Car, ChevronRight, LogOut, AlertTriangle, ChevronDown, Zap } from 'lucide-react'
 import { format } from 'date-fns'
+
+interface PendingOrder {
+  id: string
+  amount: number
+  channel: string | null
+  createdAt: string
+  product: { name: string; type: string }
+}
 
 interface Member {
   id: string
@@ -28,12 +36,14 @@ interface Member {
 
 export default function MemberPage() {
   const [members, setMembers] = useState<Member[]>([])
+  const [pendingOrders, setPendingOrders] = useState<PendingOrder[]>([])
   const [selectedPlate, setSelectedPlate] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [showCancelDialog, setShowCancelDialog] = useState(false)
   const [cancelling, setCancelling] = useState(false)
   const [showPlatePicker, setShowPlatePicker] = useState(false)
   const [countdown, setCountdown] = useState(5)
+  const [activating, setActivating] = useState<string | null>(null)
 
   useEffect(() => {
     fetch('/api/members')
@@ -45,6 +55,11 @@ export default function MemberPage() {
           setSelectedPlate(activeMember?.plateNumber || data[0]?.plateNumber || null)
         }
         setLoading(false)
+      })
+    fetch('/api/orders?status=PENDING_ACTIVATION')
+      .then(res => res.json())
+      .then((orders: PendingOrder[]) => {
+        setPendingOrders(orders)
       })
   }, [])
 
@@ -103,6 +118,28 @@ export default function MemberPage() {
       alert('取消失败，请重试')
     } finally {
       setCancelling(false)
+    }
+  }
+
+  const handleActivate = async (orderId: string) => {
+    setActivating(orderId)
+    try {
+      const res = await fetch('/api/activate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setPendingOrders(prev => prev.filter(o => o.id !== orderId))
+        window.location.reload()
+      } else {
+        alert(data.error || '激活失败')
+      }
+    } catch {
+      alert('激活失败，请重试')
+    } finally {
+      setActivating(null)
     }
   }
 
@@ -190,11 +227,11 @@ export default function MemberPage() {
                   <div className="text-blue-200 text-xs mt-0.5">{currentMember.isTrial ? '试用剩余' : '剩余天数'}</div>
                 </div>
                 <div className="text-center border-x border-white/10">
-                  <div className="text-2xl font-bold">{format(new Date(currentMember.startDate), 'MM/dd')}</div>
+                  <div className="text-lg font-bold">{format(new Date(currentMember.startDate), 'yyyy/MM/dd')}</div>
                   <div className="text-blue-200 text-xs mt-0.5">开通日期</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold">{format(new Date(currentMember.endDate), 'MM/dd')}</div>
+                  <div className="text-lg font-bold">{format(new Date(currentMember.endDate), 'yyyy/MM/dd')}</div>
                   <div className="text-blue-200 text-xs mt-0.5">到期日期</div>
                 </div>
               </div>
@@ -228,6 +265,39 @@ export default function MemberPage() {
 
       {/* 功能区域 */}
       <div className="max-w-md mx-auto px-4 -mt-2">
+        {/* 待激活订单 */}
+        {pendingOrders.length > 0 && (
+          <div className="space-y-3 mt-4">
+            <h3 className="text-sm font-medium text-gray-500 px-1">待激活订单</h3>
+            {pendingOrders.map(order => (
+              <Card key={order.id} className="overflow-hidden border-blue-200 bg-blue-50/50">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Zap className="w-4 h-4 text-blue-600" />
+                      <span className="font-medium text-sm">{order.product.name}</span>
+                    </div>
+                    <Badge className="bg-blue-500 text-white text-xs">待激活</Badge>
+                  </div>
+                  <div className="text-xs text-gray-500 mb-3">
+                    <p>申办时间：{format(new Date(order.createdAt), 'yyyy-MM-dd HH:mm')}</p>
+                    <p>签约渠道：{order.channel === 'ALIPAY' ? '支付宝' : order.channel === 'WECHAT' ? '微信' : order.channel || '-'}</p>
+                  </div>
+                  <Button
+                    className="w-full"
+                    size="sm"
+                    onClick={() => handleActivate(order.id)}
+                    disabled={activating === order.id}
+                  >
+                    {activating === order.id ? '激活中...' : '模拟ETC激活（演示）'}
+                  </Button>
+                  <p className="text-xs text-gray-400 mt-2 text-center">收到ETC产品后激活，自动扣费开通会员</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+
         {currentMember && (
           <div className="space-y-3 mt-4">
             <Card className="overflow-hidden">

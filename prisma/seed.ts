@@ -165,6 +165,24 @@ async function main() {
     },
   })
 
+  const user4 = await prisma.user.create({
+    data: {
+      phone: '13800138004',
+      name: '赵六',
+      plateNumber: '粤D88888',
+      plateColor: 'BLUE',
+    },
+  })
+
+  await prisma.vehicle.create({
+    data: {
+      userId: user4.id,
+      plateNumber: '粤D88888',
+      plateColor: 'BLUE',
+      isPrimary: true,
+    },
+  })
+
   const member1 = await prisma.member.create({
     data: {
       userId: user1.id,

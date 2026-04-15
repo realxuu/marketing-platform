@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Shield, Settings, Users, CreditCard, TrendingUp, DollarSign, FileText, BarChart3, Package, CheckCircle, RefreshCw } from 'lucide-react'
+import { Shield, Settings, Users, CreditCard, TrendingUp, DollarSign, FileText, BarChart3, Package, CheckCircle, RefreshCw, Zap } from 'lucide-react'
 import { format } from 'date-fns'
 
 interface Order {
@@ -55,6 +55,26 @@ export default function OrdersPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: orderId, status: 'REFUNDED' }),
     })
+    loadOrders()
+  }
+
+  const handleActivate = async (orderId: string) => {
+    if (!confirm('确定要模拟ETC激活吗？激活后将自动扣费并开通会员。')) return
+    try {
+      const res = await fetch('/api/activate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        alert('激活成功！已扣费并开通会员，已通知粤运')
+      } else {
+        alert(data.error || '激活失败')
+      }
+    } catch {
+      alert('激活失败')
+    }
     loadOrders()
   }
 
@@ -131,6 +151,11 @@ export default function OrdersPage() {
                       {format(new Date(order.createdAt), 'yyyy-MM-dd HH:mm')}
                     </td>
                     <td className="p-4">
+                      {order.status === 'PENDING_ACTIVATION' && !order.isActivated && (
+                        <Button variant="default" size="sm" className="mr-2" onClick={() => handleActivate(order.id)}>
+                          <Zap className="w-3 h-3 mr-1" />激活
+                        </Button>
+                      )}
                       {order.status === 'PAID' && (
                         <Button variant="outline" size="sm" className="text-red-600" onClick={() => handleRefund(order.id)}>退款</Button>
                       )}

@@ -5,9 +5,13 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('userId')
+    const status = searchParams.get('status')
 
     const orders = await prisma.order.findMany({
-      where: userId ? { userId } : undefined,
+      where: {
+        ...(userId ? { userId } : {}),
+        ...(status ? { status } : {}),
+      },
       include: {
         user: true,
         product: true,

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Users, CreditCard, TrendingUp, DollarSign, Settings, Shield, FileText, BarChart3, Package, CheckCircle } from 'lucide-react'
+import { Users, CreditCard, TrendingUp, DollarSign, Settings, Shield, FileText, BarChart3, Package, CheckCircle, RotateCcw } from 'lucide-react'
 
 interface Stats {
   totalUsers: number
@@ -25,12 +25,32 @@ interface Stats {
 
 export default function AdminPage() {
   const [stats, setStats] = useState<Stats | null>(null)
+  const [resetting, setResetting] = useState(false)
 
   useEffect(() => {
     fetch('/api/stats')
       .then(res => res.json())
       .then(setStats)
   }, [])
+
+  const handleReset = async () => {
+    if (!confirm('确定要重置所有演示数据吗？此操作不可恢复，将恢复到初始状态。')) return
+    setResetting(true)
+    try {
+      const res = await fetch('/api/reset-demo', { method: 'POST' })
+      const data = await res.json()
+      if (data.success) {
+        alert('✅ 演示数据已重置为初始状态')
+        window.location.reload()
+      } else {
+        alert('重置失败：' + (data.error || '未知错误'))
+      }
+    } catch {
+      alert('重置失败，请重试')
+    } finally {
+      setResetting(false)
+    }
+  }
 
   if (!stats) {
     return (
@@ -97,7 +117,17 @@ export default function AdminPage() {
 
       {/* 主内容 */}
       <main className="ml-64 p-6">
-        <h1 className="text-2xl font-bold mb-6">仪表盘</h1>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold">仪表盘</h1>
+          <button
+            onClick={handleReset}
+            disabled={resetting}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            <RotateCcw className={`w-4 h-4 ${resetting ? 'animate-spin' : ''}`} />
+            {resetting ? '重置中...' : '重置演示数据'}
+          </button>
+        </div>
 
         {/* 统计卡片 */}
         <div className="grid grid-cols-4 gap-4 mb-6">

@@ -14,6 +14,7 @@
 | ├ 营销平台项目一期会议材料 | Ro1Xwra2TiDWLVkftyHcP3Vcnmc | X60adHhwlotW6Bxi9nwc93r5njd | 原始需求文档（桌面） |
 | ├ 营销平台系统方案 | P6LvwTA7piZ3jVk0xHTc6aA9noh | I0x0dZQufoLvfmxQjjEc94Dvn0b | 系统方案V1.4（桌面） |
 | ├ 3.2-附件1：高速通行权益新套餐 | YNeywOSrBiJ93bkzFDwcS4ohnNc | BAtadjQZeoBPTsxT789cUk22nJd | 年卡/月卡/次卡权益套餐详情 |
+| ├ 业务需求文档（完整版） | GjNIwIWdqizsAGkbAN7cqQwentc | PT7wdoPlJoTctZxH2ntcYM1Hnue | 完整业务需求、流程图、数据模型、API、页面交互 |
 | 02-技术方案 | GlvgwyzGtilfWck3a8rcRgXLn9e | PMGvdscMpoMZ9Qx0FPzcKMo0nLn | 技术架构、数据模型、项目结构 |
 | 03-API文档 | ADAAw4pDeid5zhk2etQcBltynAb | FWaidtRGIoXULSxkglFcmJqVnZb | 接口文档 |
 | 04-测试管理 | ZjpjwmTiAiDzjRksyZsco98VnTc | ViA8d9bwAoYFyMxwuxLc1Smznse | 测试用例、Bug记录 |

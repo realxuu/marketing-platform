@@ -19,15 +19,26 @@ interface Product {
 export default function HomePage() {
   const [products, setProducts] = useState<Product[]>([])
   const [hasActiveMember, setHasActiveMember] = useState(false)
+  const [hasPendingOrder, setHasPendingOrder] = useState(false)
 
   useEffect(() => {
     fetch('/api/products')
       .then(res => res.json())
       .then(setProducts)
-    fetch('/api/members')
+    Promise.all([
+      fetch('/api/users').then(res => res.json()),
+      fetch('/api/members').then(res => res.json()),
+    ]).then(([users, members]) => {
+      const activeMemberUserIds = members
+        .filter((m: { status: string }) => ['TRIAL', 'ACTIVE', 'PENDING_CANCEL'].includes(m.status))
+        .map((m: { userId: string }) => m.userId)
+      const hasAvailableUser = users.some((u: { id: string }) => !activeMemberUserIds.includes(u.id))
+      setHasActiveMember(!hasAvailableUser)
+    })
+    fetch('/api/orders?status=PENDING_ACTIVATION')
       .then(res => res.json())
-      .then((members: { status: string }[]) => {
-        setHasActiveMember(members.some(m => ['TRIAL', 'ACTIVE', 'PENDING_CANCEL'].includes(m.status)))
+      .then((orders: { id: string }[]) => {
+        setHasPendingOrder(orders.length > 0)
       })
   }, [])
 
@@ -53,7 +64,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pb-20">
       {/* 头部横幅 */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white">
         <div className="max-w-md mx-auto px-4 py-8">
@@ -105,6 +116,13 @@ export default function HomePage() {
                   <Button className="w-full" disabled variant="secondary">
                     已开通会员
                   </Button>
+                ) : hasPendingOrder ? (
+                  <Link href="/member" className="w-full">
+                    <Button className="w-full" variant="outline">
+                      待激活，查看订单
+                      <ChevronRight className="w-4 h-4 ml-1" />
+                    </Button>
+                  </Link>
                 ) : (
                   <Link href={`/purchase?productId=${product.id}`} className="w-full">
                     <Button className="w-full">

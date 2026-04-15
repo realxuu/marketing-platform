@@ -26,6 +26,7 @@ function PurchaseContent() {
   const [agreementAccepted, setAgreementAccepted] = useState(false)
   const [showRightDetail, setShowRightDetail] = useState<string | null>(null)
   const [hasActiveMember, setHasActiveMember] = useState(false)
+  const [hasPendingOrder, setHasPendingOrder] = useState(false)
 
   useEffect(() => {
     if (productId) {
@@ -38,8 +39,21 @@ function PurchaseContent() {
     }
     fetch('/api/members')
       .then(res => res.json())
-      .then((members: { status: string }[]) => {
-        setHasActiveMember(members.some(m => ['TRIAL', 'ACTIVE', 'PENDING_CANCEL'].includes(m.status)))
+      .then((members: { status: string; userId: string }[]) => {
+        Promise.all([
+          fetch('/api/users').then(res => res.json()),
+        ]).then(([users]) => {
+          const activeMemberUserIds = members
+            .filter(m => ['TRIAL', 'ACTIVE', 'PENDING_CANCEL'].includes(m.status))
+            .map(m => m.userId)
+          const hasAvailableUser = users.some((u: { id: string }) => !activeMemberUserIds.includes(u.id))
+          setHasActiveMember(!hasAvailableUser)
+        })
+      })
+    fetch('/api/orders?status=PENDING_ACTIVATION')
+      .then(res => res.json())
+      .then((orders: { id: string }[]) => {
+        setHasPendingOrder(orders.length > 0)
       })
   }, [productId])
 
@@ -53,7 +67,13 @@ function PurchaseContent() {
 
     const usersRes = await fetch('/api/users')
     const users = await usersRes.json()
-    const demoUserId = users[0]?.id
+    const membersRes = await fetch('/api/members')
+    const members = await membersRes.json()
+    const activeMemberUserIds = members
+      .filter((m: { status: string }) => ['TRIAL', 'ACTIVE', 'PENDING_CANCEL'].includes(m.status))
+      .map((m: { userId: string }) => m.userId)
+    const availableUser = users.find((u: { id: string }) => !activeMemberUserIds.includes(u.id))
+    const demoUserId = availableUser?.id
 
     if (!demoUserId) {
       alert('没有可用的演示用户')
@@ -61,7 +81,7 @@ function PurchaseContent() {
       return
     }
 
-    const orderRes = await fetch('/api/orders', {
+    await fetch('/api/orders', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -73,19 +93,8 @@ function PurchaseContent() {
         agreementAccepted: true,
       }),
     })
-    const order = await orderRes.json()
 
-    await new Promise(resolve => setTimeout(resolve, 1500))
-
-    await fetch('/api/activate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        orderId: order.id,
-        plateNumber: null,
-        plateColor: null,
-      }),
-    })
+    await new Promise(resolve => setTimeout(resolve, 1000))
 
     setLoading(false)
     setSuccess(true)
@@ -96,13 +105,13 @@ function PurchaseContent() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
         <Card className="w-full max-w-md text-center">
           <CardContent className="pt-8 pb-8">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Check className="w-8 h-8 text-green-600" />
+            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Check className="w-8 h-8 text-blue-600" />
             </div>
-            <h2 className="text-xl font-semibold mb-2">开通成功</h2>
-            <p className="text-gray-500 mb-2">您已成功开通{product?.name}</p>
-            <p className="text-sm text-green-600 mb-4">ETC发行成功，会员权益已激活</p>
-            <p className="text-xs text-gray-400 mb-4">已开通2个月免费体验期，已通知粤运</p>
+            <h2 className="text-xl font-semibold mb-2">申办成功</h2>
+            <p className="text-gray-500 mb-2">您已选择{product?.name}</p>
+            <p className="text-sm text-blue-600 mb-4">收到ETC产品激活后自动扣费开通会员</p>
+            <p className="text-xs text-gray-400 mb-4">激活扣费成功后将开通2个月免费体验期并通知粤运</p>
             <Button onClick={() => window.location.href = '/member'} className="w-full">
               查看我的会员
             </Button>
@@ -132,6 +141,25 @@ function PurchaseContent() {
             <p className="text-gray-500 mb-4">每辆车只能购买一个会员产品，如需变更请先取消当前会员</p>
             <Button onClick={() => window.location.href = '/member'} className="w-full">
               查看我的会员
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  if (hasPendingOrder) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <Card className="w-full max-w-md text-center">
+          <CardContent className="pt-8 pb-8">
+            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CreditCard className="w-8 h-8 text-blue-600" />
+            </div>
+            <h2 className="text-xl font-semibold mb-2">您有待激活的申办订单</h2>
+            <p className="text-gray-500 mb-4">收到ETC产品后激活即可自动扣费开通会员，无需重复申办</p>
+            <Button onClick={() => window.location.href = '/member'} className="w-full">
+              查看订单
             </Button>
           </CardContent>
         </Card>
@@ -185,16 +213,35 @@ function PurchaseContent() {
             <CardTitle className="text-base">签约渠道</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 bg-gray-50">
-              <div className={`w-8 h-8 rounded flex items-center justify-center text-white text-xs font-bold ${
-                channel === 'WECHAT' ? 'bg-green-500' : channel === 'ALIPAY' ? 'bg-blue-500' : 'bg-red-500'
-              }`}>
-                {channel === 'WECHAT' ? '微' : channel === 'ALIPAY' ? '支' : '银'}
-              </div>
-              <span className="font-medium">
-                {channel === 'WECHAT' ? '微信支付' : channel === 'ALIPAY' ? '支付宝' : '银联云闪付'}
-              </span>
-              <span className="text-xs text-gray-400 ml-auto">ETC发行时已签约</span>
+            <div className="space-y-2">
+              {[
+                { key: 'ALIPAY', label: '支付宝', icon: '支', color: 'bg-blue-500' },
+                { key: 'WECHAT', label: '微信支付', icon: '微', color: 'bg-green-500' },
+                { key: 'UNIONPAY', label: '银联云闪付', icon: '银', color: 'bg-red-500' },
+              ].map(ch => (
+                <label
+                  key={ch.key}
+                  className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                    channel === ch.key ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-gray-50 hover:border-gray-300'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="channel"
+                    value={ch.key}
+                    checked={channel === ch.key}
+                    onChange={() => setChannel(ch.key)}
+                    className="sr-only"
+                  />
+                  <div className={`w-8 h-8 rounded flex items-center justify-center text-white text-xs font-bold ${ch.color}`}>
+                    {ch.icon}
+                  </div>
+                  <span className="font-medium">{ch.label}</span>
+                  {channel === ch.key && (
+                    <Check className="w-4 h-4 text-blue-600 ml-auto" />
+                  )}
+                </label>
+              ))}
             </div>
           </CardContent>
         </Card>
@@ -222,23 +269,24 @@ function PurchaseContent() {
         </Card>
 
         <div className="text-xs text-gray-400 mb-4">
-          <p>• 新用户享2个月免费体验期</p>
+          <p>• 申办成功后，收到ETC产品激活时自动扣费</p>
+          <p>• 扣费成功后开通2个月免费体验期并通知粤运</p>
           <p>• 体验期内可随时取消，不产生费用</p>
-          <p>• 体验期满未取消将自动扣费</p>
-          <p>• ETC发行成功后自动激活会员权益</p>
+          <p>• 体验期满未取消将自动续费扣款</p>
         </div>
 
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4">
           <div className="max-w-md mx-auto flex items-center justify-between">
             <div>
-              <span className="text-gray-500">应付金额：</span>
-              <span className="text-xl font-bold text-red-500">¥{product.price}</span>
+              <span className="text-gray-500">申办金额：</span>
+              <span className="text-xl font-bold text-blue-600">¥{product.price}</span>
+              <span className="text-xs text-gray-400 ml-1">激活后扣费</span>
             </div>
             <Button onClick={handlePay} disabled={loading || !agreementAccepted} className="px-8">
               {loading ? (
-                <><Loader2 className="w-4 h-4 animate-spin mr-2" />支付中...</>
+                <><Loader2 className="w-4 h-4 animate-spin mr-2" />提交中...</>
               ) : (
-                '立即支付'
+                '确认申办'
               )}
             </Button>
           </div>

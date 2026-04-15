@@ -9,6 +9,7 @@ export async function POST(request: Request) {
     const order = await prisma.order.findUnique({
       where: { id: orderId },
       include: {
+        user: true,
         product: {
           include: {
             rights: {
@@ -27,10 +28,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Order already activated' }, { status: 400 })
     }
 
-    if (plateNumber) {
+    const userPlateNumber = plateNumber || order.user.plateNumber
+    const userPlateColor = plateColor || order.user.plateColor
+
+    if (userPlateNumber) {
       const existingMember = await prisma.member.findFirst({
         where: {
-          plateNumber,
+          plateNumber: userPlateNumber,
           status: { in: ['TRIAL', 'ACTIVE', 'PENDING_CANCEL'] }
         }
       })
@@ -51,8 +55,8 @@ export async function POST(request: Request) {
         startDate,
         endDate,
         isTrial: true,
-        plateNumber: plateNumber || null,
-        plateColor: plateColor || null,
+        plateNumber: userPlateNumber || null,
+        plateColor: userPlateColor || null,
         warrantyEndDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
       }
     })
@@ -100,8 +104,8 @@ export async function POST(request: Request) {
         body: JSON.stringify({
           memberId: member.id,
           action: 'MEMBER_ACTIVATED',
-          plateNumber: plateNumber || null,
-          plateColor: plateColor || null,
+          plateNumber: userPlateNumber || null,
+          plateColor: userPlateColor || null,
           userId: order.userId,
         }),
       })
