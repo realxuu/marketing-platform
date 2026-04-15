@@ -27,6 +27,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Order already activated' }, { status: 400 })
     }
 
+    if (plateNumber) {
+      const existingMember = await prisma.member.findFirst({
+        where: {
+          plateNumber,
+          status: { in: ['TRIAL', 'ACTIVE', 'PENDING_CANCEL'] }
+        }
+      })
+      if (existingMember) {
+        return NextResponse.json({ error: '该车牌已有生效中的会员，每辆车只能购买一个会员' }, { status: 400 })
+      }
+    }
+
     const trialDays = 61
     const startDate = new Date()
     const endDate = new Date(Date.now() + trialDays * 24 * 60 * 60 * 1000)

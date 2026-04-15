@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Crown, Shield, Car, Calendar, ChevronRight, LogOut, AlertTriangle } from 'lucide-react'
+import { Crown, Shield, Car, Calendar, ChevronRight, LogOut, AlertTriangle, ChevronDown } from 'lucide-react'
 import { format } from 'date-fns'
 
 interface Member {
@@ -28,21 +28,27 @@ interface Member {
 }
 
 export default function MemberPage() {
-  const [member, setMember] = useState<Member | null>(null)
+  const [members, setMembers] = useState<Member[]>([])
+  const [selectedPlate, setSelectedPlate] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [showCancelDialog, setShowCancelDialog] = useState(false)
   const [cancelling, setCancelling] = useState(false)
+  const [showPlatePicker, setShowPlatePicker] = useState(false)
 
   useEffect(() => {
     fetch('/api/members')
       .then(res => res.json())
       .then((data: Member[]) => {
+        setMembers(data)
         if (data.length > 0) {
-          setMember(data[0])
+          const activeMember = data.find(m => ['TRIAL', 'ACTIVE', 'PENDING_CANCEL'].includes(m.status))
+          setSelectedPlate(activeMember?.plateNumber || data[0]?.plateNumber || null)
         }
         setLoading(false)
       })
   }, [])
+
+  const currentMember = members.find(m => m.plateNumber === selectedPlate) || members[0] || null
 
   const statusMap: Record<string, { label: string; color: string; bg: string }> = {
     TRIAL: { label: '体验期', color: 'text-orange-600', bg: 'bg-orange-100' },
@@ -65,8 +71,14 @@ export default function MemberPage() {
     GREEN: '绿色',
   }
 
+  const plateColorBg: Record<string, string> = {
+    BLUE: 'bg-blue-600',
+    YELLOW: 'bg-yellow-500',
+    GREEN: 'bg-green-600',
+  }
+
   const handleCancel = async () => {
-    if (!member) return
+    if (!currentMember) return
     setCancelling(true)
 
     try {
@@ -74,14 +86,18 @@ export default function MemberPage() {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          memberId: member.id,
+          memberId: currentMember.id,
           cancelReason: 'USER_CANCEL',
         }),
       })
       const data = await res.json()
 
       if (data.success) {
-        setMember({ ...member, status: 'PENDING_CANCEL', cancelReason: 'USER_CANCEL', cancelAt: new Date().toISOString() })
+        setMembers(members.map(m =>
+          m.id === currentMember.id
+            ? { ...m, status: 'PENDING_CANCEL', cancelReason: 'USER_CANCEL', cancelAt: new Date().toISOString() }
+            : m
+        ))
         setShowCancelDialog(false)
       } else {
         alert(data.error || '取消失败')
@@ -108,36 +124,84 @@ export default function MemberPage() {
           <h1 className="text-lg font-semibold">我的会员</h1>
           <Link href="/admin" className="text-xs text-blue-200 hover:text-white">管理后台</Link>
         </div>
-        {member && (
+
+        {members.length > 1 && (
+          <div className="mb-3 relative">
+            <button
+              onClick={() => setShowPlatePicker(!showPlatePicker)}
+              className="flex items-center gap-2 text-sm bg-white/15 rounded-lg px-3 py-2 w-full"
+            >
+              <Car className="w-4 h-4" />
+              <span className="flex-1 text-left">
+                {currentMember?.plateNumber
+                  ? `${plateColorMap[currentMember.plateColor || 'BLUE'] || ''} ${currentMember.plateNumber}`
+                  : '选择车辆'}
+              </span>
+              <ChevronDown className="w-4 h-4" />
+            </button>
+            {showPlatePicker && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-lg z-10 overflow-hidden">
+                {members.map(m => (
+                  <button
+                    key={m.id}
+                    onClick={() => { setSelectedPlate(m.plateNumber); setShowPlatePicker(false) }}
+                    className={`flex items-center gap-3 w-full px-4 py-3 text-left text-sm hover:bg-gray-50 ${
+                      m.plateNumber === selectedPlate ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+                    }`}
+                  >
+                    <span className={`w-2 h-2 rounded-full ${plateColorBg[m.plateColor || 'BLUE']}`} />
+                    <span>{plateColorMap[m.plateColor || 'BLUE'] || ''} {m.plateNumber}</span>
+                    <Badge className={`ml-auto text-xs ${statusMap[m.status]?.bg} ${statusMap[m.status]?.color}`}>
+                      {statusMap[m.status]?.label}
+                    </Badge>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {currentMember && (
           <Card className="bg-white/10 border-0 backdrop-blur">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <Crown className="w-6 h-6 text-yellow-400" />
-                  <span className="font-medium">{member.product.name}</span>
+                  <span className="font-medium">{currentMember.product.name}</span>
                 </div>
-                <Badge className={`${statusMap[member.status]?.bg} ${statusMap[member.status]?.color}`}>
-                  {statusMap[member.status]?.label}
+                <Badge className={`${statusMap[currentMember.status]?.bg} ${statusMap[currentMember.status]?.color}`}>
+                  {statusMap[currentMember.status]?.label}
                 </Badge>
               </div>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <div className="text-blue-200">有效期至</div>
-                  <div className="font-medium">{format(new Date(member.endDate), 'yyyy-MM-dd')}</div>
+                  <div className="font-medium">{format(new Date(currentMember.endDate), 'yyyy-MM-dd')}</div>
                 </div>
                 <div>
-                  <div className="text-blue-200">{member.isTrial ? '试用剩余' : '剩余天数'}</div>
+                  <div className="text-blue-200">{currentMember.isTrial ? '试用剩余' : '剩余天数'}</div>
                   <div className="font-medium">
-                    {Math.max(0, Math.ceil((new Date(member.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))} 天
+                    {Math.max(0, Math.ceil((new Date(currentMember.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))} 天
                   </div>
                 </div>
               </div>
-              {member.plateNumber && (
+              {currentMember.plateNumber && (
                 <div className="mt-3 pt-3 border-t border-white/20 text-sm">
                   <div className="text-blue-200">绑定车牌</div>
                   <div className="font-medium">
-                    {plateColorMap[member.plateColor || 'BLUE'] || ''} {member.plateNumber}
+                    {plateColorMap[currentMember.plateColor || 'BLUE'] || ''} {currentMember.plateNumber}
                   </div>
+                </div>
+              )}
+              {currentMember.warrantyEndDate && (
+                <div className="mt-1 text-sm">
+                  <div className="text-blue-200">维保到期</div>
+                  <div className="font-medium">{format(new Date(currentMember.warrantyEndDate), 'yyyy-MM-dd')}</div>
+                </div>
+              )}
+              {currentMember.isTrial && (
+                <div className="mt-2 text-sm text-orange-300">
+                  免费体验期中
                 </div>
               )}
             </CardContent>
@@ -146,7 +210,7 @@ export default function MemberPage() {
       </div>
 
       <div className="max-w-md mx-auto p-4">
-        {!member ? (
+        {!currentMember ? (
           <Card className="text-center py-8">
             <CardContent>
               <Crown className="w-12 h-12 text-gray-300 mx-auto mb-4" />
@@ -156,65 +220,17 @@ export default function MemberPage() {
           </Card>
         ) : (
           <div className="space-y-4">
-            <Card>
-              <CardContent className="p-4">
-                <h3 className="font-medium mb-3">会员信息</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">产品类型</span>
-                    <span>{member.product.name}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">开通时间</span>
-                    <span>{format(new Date(member.startDate), 'yyyy-MM-dd')}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">到期时间</span>
-                    <span>{format(new Date(member.endDate), 'yyyy-MM-dd')}</span>
-                  </div>
-                  {member.plateNumber && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">绑定车牌</span>
-                      <span>{plateColorMap[member.plateColor || 'BLUE'] || ''} {member.plateNumber}</span>
-                    </div>
-                  )}
-                  {member.warrantyEndDate && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">维保到期</span>
-                      <span>{format(new Date(member.warrantyEndDate), 'yyyy-MM-dd')}</span>
-                    </div>
-                  )}
-                  {member.isTrial && (
-                    <div className="flex justify-between text-orange-600">
-                      <span>体验状态</span>
-                      <span>免费体验期</span>
-                    </div>
-                  )}
-                  {member.status === 'PENDING_CANCEL' && member.cancelReason && (
-                    <div className="flex justify-between text-amber-600">
-                      <span>取消原因</span>
-                      <span>{cancelReasonMap[member.cancelReason] || member.cancelReason}</span>
-                    </div>
-                  )}
-                  {member.status === 'PENDING_CANCEL' && member.cancelAt && (
-                    <div className="flex justify-between text-amber-600">
-                      <span>取消时间</span>
-                      <span>{format(new Date(member.cancelAt), 'yyyy-MM-dd HH:mm')}</span>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {member.status === 'PENDING_CANCEL' && (
+            {currentMember.status === 'PENDING_CANCEL' && (
               <Card className="border-amber-200 bg-amber-50">
                 <CardContent className="p-4">
                   <div className="flex items-start gap-2">
                     <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5" />
                     <div className="text-sm text-amber-800">
                       <p className="font-medium mb-1">会员取消中</p>
-                      <p>您的会员权益将保留至 {format(new Date(member.endDate), 'yyyy-MM-dd')} 到期。到期后会员服务将正式取消。</p>
-                      <p className="mt-1">只换不修服务将延续至会员期结束，到期后维保期恢复为产品发行时记录的维保期。</p>
+                      <p>权益将保留至 {format(new Date(currentMember.endDate), 'yyyy-MM-dd')} 到期，到期后正式取消。</p>
+                      {currentMember.cancelReason && (
+                        <p className="mt-1">取消原因：{cancelReasonMap[currentMember.cancelReason]}</p>
+                      )}
                     </div>
                   </div>
                 </CardContent>
@@ -247,7 +263,7 @@ export default function MemberPage() {
               </CardContent>
             </Card>
 
-            {member.status !== 'CANCELLED' && member.status !== 'EXPIRED' && member.status !== 'PENDING_CANCEL' && (
+            {currentMember.status !== 'CANCELLED' && currentMember.status !== 'EXPIRED' && currentMember.status !== 'PENDING_CANCEL' && (
               <Button
                 variant="outline"
                 className="w-full text-red-600 border-red-200 hover:bg-red-50"
@@ -259,6 +275,7 @@ export default function MemberPage() {
             )}
 
             <div className="text-xs text-gray-400 space-y-1">
+              <p>• 每辆车只能购买一个会员产品</p>
               <p>• 体验期内取消即时生效</p>
               <p>• 会员生效后取消，权益保留至到期日</p>
               <p>• 已扣费会员原则上不予退款</p>
@@ -280,7 +297,7 @@ export default function MemberPage() {
                 </div>
               </div>
               <div className="text-sm text-gray-600 space-y-2 mb-6">
-                <p>1. 取消后权益将保留至 {member ? format(new Date(member.endDate), 'yyyy-MM-dd') : '到期日'}，到期后正式取消。</p>
+                <p>1. 取消后权益将保留至 {currentMember ? format(new Date(currentMember.endDate), 'yyyy-MM-dd') : '到期日'}，到期后正式取消。</p>
                 <p>2. 只换不修服务将延续至会员期结束，到期后维保期恢复为产品发行时记录的维保期。</p>
                 <p>3. 取消后不进行退款。</p>
                 <p>4. 取消后将通知粤运暂停权益服务。</p>
