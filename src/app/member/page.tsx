@@ -34,6 +34,7 @@ export default function MemberPage() {
   const [showCancelDialog, setShowCancelDialog] = useState(false)
   const [cancelling, setCancelling] = useState(false)
   const [showPlatePicker, setShowPlatePicker] = useState(false)
+  const [countdown, setCountdown] = useState(5)
 
   useEffect(() => {
     fetch('/api/members')
@@ -47,6 +48,16 @@ export default function MemberPage() {
         setLoading(false)
       })
   }, [])
+
+  useEffect(() => {
+    if (!showCancelDialog) {
+      setCountdown(5)
+      return
+    }
+    if (countdown <= 0) return
+    const timer = setTimeout(() => setCountdown(c => c - 1), 1000)
+    return () => clearTimeout(timer)
+  }, [showCancelDialog, countdown])
 
   const currentMember = members.find(m => m.plateNumber === selectedPlate) || members[0] || null
 
@@ -304,8 +315,8 @@ export default function MemberPage() {
               </div>
               <div className="flex gap-3">
                 <Button variant="outline" onClick={() => setShowCancelDialog(false)} className="flex-1">再想想</Button>
-                <Button variant="destructive" onClick={handleCancel} disabled={cancelling} className="flex-1">
-                  {cancelling ? '取消中...' : '确认取消'}
+                <Button variant="destructive" onClick={handleCancel} disabled={cancelling || countdown > 0} className="flex-1">
+                  {cancelling ? '取消中...' : countdown > 0 ? `请阅读 (${countdown}s)` : '确认取消'}
                 </Button>
               </div>
             </CardContent>

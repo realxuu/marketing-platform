@@ -44,6 +44,24 @@ export async function PATCH(request: Request) {
       }
     })
 
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+      await fetch(`${baseUrl}/api/notify/yueyun`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          memberId: member.id,
+          action: 'MEMBER_CANCELLED',
+          plateNumber: member.plateNumber,
+          plateColor: member.plateColor,
+          cancelReason,
+          cancelAt: new Date().toISOString(),
+        }),
+      })
+    } catch (e) {
+      console.error('Failed to notify yueyun:', e)
+    }
+
     return NextResponse.json({
       success: true,
       member: updatedMember,
