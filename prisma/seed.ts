@@ -10,6 +10,7 @@ async function main() {
   await prisma.userRight.deleteMany()
   await prisma.notification.deleteMany()
   await prisma.settlement.deleteMany()
+  await prisma.systemConfig.deleteMany()
   await prisma.member.deleteMany()
   await prisma.order.deleteMany()
   await prisma.productRight.deleteMany()
