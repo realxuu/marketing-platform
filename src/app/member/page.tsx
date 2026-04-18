@@ -71,11 +71,15 @@ export default function MemberPage() {
           setSelectedPlate(defaultPlate)
         }
         setLoading(false)
-      })
-    fetch('/api/orders?status=PENDING_ACTIVATION')
-      .then(res => res.json())
-      .then((orders: PendingOrder[]) => {
-        setPendingOrders(orders)
+
+        // 只有当用户没有任何会员时，才查询待激活订单（ETC申办后等待激活）
+        if (userMembers.length === 0 && currentUserId) {
+          return fetch(`/api/orders?status=PENDING_ACTIVATION&userId=${currentUserId}`)
+            .then(res => res.json())
+            .then((orders: PendingOrder[]) => {
+              setPendingOrders(orders)
+            })
+        }
       })
   }, [])
 
