@@ -78,11 +78,12 @@ model Order {
   productId         String
   product           MemberProduct @relation(fields: [productId], references: [id])
   amount            Float
-  status            String    @default("PENDING") // PENDING / PAID / PENDING_ACTIVATION / CANCELLED / REFUNDED
+  status            String    @default("PENDING") // PENDING(待签约) / PENDING_ACTIVATION(已签约待激活) / PAID(已激活) / CANCELLED / REFUNDED
   payMethod         String?   // WECHAT / ALIPAY / UNIONPAY
   channel           String?   // 签约渠道：WECHAT / ALIPAY / UNIONPAY
-  isActivated       Boolean   @default(false)
-  activatedAt       DateTime?
+  isSigned          Boolean   @default(false) // 是否已签约（会员签约，非ETC申办签约）
+  isActivated       Boolean   @default(false) // 是否已激活
+  activatedAt       DateTime? // 激活时间
   agreementAccepted Boolean   @default(false)
   createdAt         DateTime  @default(now())
   paidAt            DateTime?
@@ -121,7 +122,7 @@ model BillingRecord {
   member    Member   @relation(fields: [memberId], references: [id])
   amount    Float
   type      String   @default("MEMBERSHIP_FEE") // MEMBERSHIP_FEE / TOLL_FEE
-  status    String   @default("SUCCESS") // SUCCESS / FAILED / PENDING
+  status    String   @default("PENDING") // SUCCESS / FAILED / PENDING
   remark    String?
   createdAt DateTime @default(now())
 

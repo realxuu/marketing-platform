@@ -25,6 +25,8 @@ interface UserRight {
   }
   member?: {
     id: string
+    plateNumber: string | null
+    plateColor: string | null
     product?: { name: string }
   }
   usages: {
@@ -35,27 +37,89 @@ interface UserRight {
   }[]
 }
 
+interface Member {
+  id: string
+  userId: string
+  status: string
+  plateNumber: string | null
+  plateColor: string | null
+  product: { name: string }
+}
+
+const plateColorDot: Record<string, string> = { BLUE: 'bg-blue-500', YELLOW: 'bg-yellow-500', GREEN: 'bg-green-500' }
+const statusMap: Record<string, { label: string; color: string; bg: string }> = {
+  TRIAL: { label: '体验期', color: 'text-orange-600', bg: 'bg-orange-100' },
+  ACTIVE: { label: '生效中', color: 'text-green-600', bg: 'bg-green-100' },
+  PENDING_CANCEL: { label: '待取消', color: 'text-amber-600', bg: 'bg-amber-100' },
+}
+
 export default function RightsPage() {
   const [userRights, setUserRights] = useState<UserRight[]>([])
+  const [members, setMembers] = useState<Member[]>([])
+  const [selectedPlate, setSelectedPlate] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [hasMember, setHasMember] = useState(false)
   const [detailHtml, setDetailHtml] = useState<string | null>(null)
   const [detailTitle, setDetailTitle] = useState('')
 
   useEffect(() => {
-    fetch('/api/users')
+    const currentUserId = localStorage.getItem('currentUserId')
+
+    if (!currentUserId) {
+      setHasMember(false)
+      setLoading(false)
+      return
+    }
+
+    // 获取会员信息
+    fetch('/api/members')
       .then(res => res.json())
-      .then(users => {
-        if (users.length > 0) {
-          return fetch(`/api/user-rights?userId=${users[0].id}`)
+      .then((data: Member[]) => {
+        const userMembers = data.filter(m =>
+          m.userId === currentUserId && ['TRIAL', 'ACTIVE', 'PENDING_CANCEL'].includes(m.status)
+        )
+        setMembers(userMembers)
+
+        if (userMembers.length === 0) {
+          setHasMember(false)
+          setLoading(false)
+          return null
         }
-        return null
+
+        setHasMember(true)
+
+        // 从 localStorage 获取选中的车牌
+        const savedPlate = localStorage.getItem('selectedPlate')
+        const defaultPlate = userMembers.find(m => m.plateNumber === savedPlate)?.plateNumber || userMembers[0].plateNumber
+        setSelectedPlate(defaultPlate)
+
+        // 获取权益
+        return fetch(`/api/user-rights?userId=${currentUserId}`)
+          .then(res => res?.json())
       })
-      .then(res => res?.json())
       .then(data => {
         if (data) setUserRights(data)
         setLoading(false)
       })
   }, [])
+
+  // 监听 storage 变化，同步会员页面的选择
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'selectedPlate' && e.newValue) {
+        setSelectedPlate(e.newValue)
+      }
+    }
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
+  }, [])
+
+  // 按选中的车牌筛选权益
+  const filteredRights = selectedPlate
+    ? userRights.filter(ur => ur.member?.plateNumber === selectedPlate)
+    : userRights
+
+  const currentMember = members.find(m => m.plateNumber === selectedPlate)
 
   const getIcon = (name: string) => {
     if (name.includes('拯救') || name.includes('救援')) return Shield
@@ -83,8 +147,8 @@ export default function RightsPage() {
     )
   }
 
-  const activeRights = userRights.filter(ur => ur.status === 'ACTIVE')
-  const usedRights = userRights.filter(ur => ur.status !== 'ACTIVE')
+  const activeRights = filteredRights.filter(ur => ur.status === 'ACTIVE')
+  const usedRights = filteredRights.filter(ur => ur.status !== 'ACTIVE')
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
@@ -97,15 +161,36 @@ export default function RightsPage() {
       </div>
 
       <div className="max-w-md mx-auto p-4">
-        {userRights.length === 0 ? (
+        {!hasMember ? (
           <Card className="text-center py-8">
             <CardContent>
               <Shield className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 mb-4">您暂无权益</p>
+              <p className="text-gray-500 mb-2">您还未开通会员</p>
+              <p className="text-gray-400 text-sm mb-4">开通会员后即可享受专属权益</p>
               <Link href="/"><Button>立即开通会员</Button></Link>
             </CardContent>
           </Card>
         ) : (
+          <>
+            {/* 当前车辆信息 */}
+            {currentMember && (
+              <div className="mb-4 bg-white border rounded-lg px-4 py-2.5 flex items-center gap-2">
+                <span className={`w-2 h-2 rounded-full ${plateColorDot[currentMember.plateColor || 'BLUE']}`} />
+                <span className="font-medium text-sm">{currentMember.plateNumber}</span>
+                <Badge className={`${statusMap[currentMember.status]?.bg || ''} ${statusMap[currentMember.status]?.color || ''} text-xs`}>
+                  {statusMap[currentMember.status]?.label}
+                </Badge>
+              </div>
+            )}
+
+            {filteredRights.length === 0 ? (
+              <Card className="text-center py-8">
+                <CardContent>
+                  <Shield className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500 mb-4">该车辆暂无权益</p>
+                </CardContent>
+              </Card>
+            ) : (
           <div className="space-y-4">
             {activeRights.length > 0 && (
               <>
@@ -203,6 +288,8 @@ export default function RightsPage() {
               </CardContent>
             </Card>
           </div>
+            )}
+          </>
         )}
       </div>
 
@@ -220,9 +307,9 @@ export default function RightsPage() {
 
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t">
         <div className="max-w-md mx-auto flex">
-          <Link href="/" className="flex-1 flex flex-col items-center py-2 text-gray-400"><Crown className="w-5 h-5" /><span className="text-xs mt-1">首页</span></Link>
+          <Link href="/" className="flex-1 flex flex-col items-center py-2 text-gray-400"><Car className="w-5 h-5" /><span className="text-xs mt-1">ETC申办</span></Link>
           <Link href="/rights" className="flex-1 flex flex-col items-center py-2 text-blue-600"><Shield className="w-5 h-5" /><span className="text-xs mt-1">权益</span></Link>
-          <Link href="/member" className="flex-1 flex flex-col items-center py-2 text-gray-400"><Car className="w-5 h-5" /><span className="text-xs mt-1">我的</span></Link>
+          <Link href="/member" className="flex-1 flex flex-col items-center py-2 text-gray-400"><Crown className="w-5 h-5" /><span className="text-xs mt-1">我的</span></Link>
         </div>
       </nav>
     </div>

@@ -18,6 +18,7 @@ async function main() {
   await prisma.memberProduct.deleteMany()
   await prisma.vehicle.deleteMany()
   await prisma.user.deleteMany()
+  await prisma.systemConfig.deleteMany()
 
   const rescueRight = await prisma.right.create({
     data: {
@@ -111,9 +112,28 @@ async function main() {
     },
   })
 
+  // 创建用户：第一个用户无会员（演示用）
   const user1 = await prisma.user.create({
     data: {
       phone: '13800138001',
+      name: '赵六',
+      plateNumber: '粤D88888',
+      plateColor: 'BLUE',
+    },
+  })
+
+  await prisma.vehicle.create({
+    data: {
+      userId: user1.id,
+      plateNumber: '粤D88888',
+      plateColor: 'BLUE',
+      isPrimary: true,
+    },
+  })
+
+  const user2 = await prisma.user.create({
+    data: {
+      phone: '13800138002',
       name: '张三',
       plateNumber: '粤A12345',
       plateColor: 'BLUE',
@@ -123,26 +143,8 @@ async function main() {
 
   await prisma.vehicle.create({
     data: {
-      userId: user1.id,
-      plateNumber: '粤A12345',
-      plateColor: 'BLUE',
-      isPrimary: true,
-    },
-  })
-
-  const user2 = await prisma.user.create({
-    data: {
-      phone: '13800138002',
-      name: '李四',
-      plateNumber: '粤B67890',
-      plateColor: 'BLUE',
-    },
-  })
-
-  await prisma.vehicle.create({
-    data: {
       userId: user2.id,
-      plateNumber: '粤B67890',
+      plateNumber: '粤A12345',
       plateColor: 'BLUE',
       isPrimary: true,
     },
@@ -151,17 +153,17 @@ async function main() {
   const user3 = await prisma.user.create({
     data: {
       phone: '13800138003',
-      name: '王五',
-      plateNumber: '粤C11111',
-      plateColor: 'GREEN',
+      name: '李四',
+      plateNumber: '粤B67890',
+      plateColor: 'BLUE',
     },
   })
 
   await prisma.vehicle.create({
     data: {
       userId: user3.id,
-      plateNumber: '粤C11111',
-      plateColor: 'GREEN',
+      plateNumber: '粤B67890',
+      plateColor: 'BLUE',
       isPrimary: true,
     },
   })
@@ -169,9 +171,9 @@ async function main() {
   const user4 = await prisma.user.create({
     data: {
       phone: '13800138004',
-      name: '赵六',
-      plateNumber: '粤D88888',
-      plateColor: 'BLUE',
+      name: '王五',
+      plateNumber: '粤C11111',
+      plateColor: 'GREEN',
     },
   })
 
@@ -186,7 +188,7 @@ async function main() {
 
   const member1 = await prisma.member.create({
     data: {
-      userId: user1.id,
+      userId: user2.id, // 张三
       productId: yearlyProduct.id,
       status: 'ACTIVE',
       startDate: new Date(),
@@ -200,7 +202,7 @@ async function main() {
 
   const member2 = await prisma.member.create({
     data: {
-      userId: user2.id,
+      userId: user3.id, // 李四
       productId: monthlyProduct.id,
       status: 'TRIAL',
       startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
@@ -214,7 +216,7 @@ async function main() {
 
   const member3 = await prisma.member.create({
     data: {
-      userId: user3.id,
+      userId: user4.id, // 王五
       productId: perUseProduct.id,
       status: 'TRIAL',
       startDate: new Date(),
@@ -228,7 +230,7 @@ async function main() {
 
   await prisma.order.create({
     data: {
-      userId: user1.id,
+      userId: user2.id, // 张三
       productId: yearlyProduct.id,
       amount: 138,
       status: 'PAID',
@@ -243,7 +245,7 @@ async function main() {
 
   await prisma.order.create({
     data: {
-      userId: user2.id,
+      userId: user3.id, // 李四
       productId: monthlyProduct.id,
       amount: 16.8,
       status: 'PAID',
@@ -258,7 +260,7 @@ async function main() {
 
   await prisma.order.create({
     data: {
-      userId: user3.id,
+      userId: user4.id, // 王五
       productId: perUseProduct.id,
       amount: 0,
       status: 'PAID',
@@ -274,7 +276,7 @@ async function main() {
   await prisma.userRight.createMany({
     data: [
       {
-        userId: user1.id,
+        userId: user2.id, // 张三
         rightId: rescueRight.id,
         memberId: member1.id,
         status: 'ACTIVE',
@@ -283,7 +285,7 @@ async function main() {
         expireAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
       },
       {
-        userId: user1.id,
+        userId: user2.id, // 张三
         rightId: replaceRight.id,
         memberId: member1.id,
         status: 'ACTIVE',
@@ -292,7 +294,7 @@ async function main() {
         expireAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
       },
       {
-        userId: user1.id,
+        userId: user2.id, // 张三
         rightId: sinopecRight.id,
         memberId: member1.id,
         status: 'ACTIVE',
@@ -301,7 +303,7 @@ async function main() {
         expireAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
       },
       {
-        userId: user2.id,
+        userId: user3.id, // 李四
         rightId: rescueRight.id,
         memberId: member2.id,
         status: 'ACTIVE',
@@ -310,7 +312,7 @@ async function main() {
         expireAt: new Date(Date.now() + 54 * 24 * 60 * 60 * 1000),
       },
       {
-        userId: user3.id,
+        userId: user4.id, // 王五
         rightId: rescueRight.id,
         memberId: member3.id,
         status: 'ACTIVE',
@@ -319,7 +321,7 @@ async function main() {
         expireAt: new Date(Date.now() + 61 * 24 * 60 * 60 * 1000),
       },
       {
-        userId: user3.id,
+        userId: user4.id, // 王五
         rightId: insuranceRight.id,
         memberId: member3.id,
         status: 'ACTIVE',

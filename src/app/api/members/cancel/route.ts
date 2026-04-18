@@ -44,8 +44,10 @@ export async function PATCH(request: Request) {
       }
     })
 
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+
+    // 通知粤运系统
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
       await fetch(`${baseUrl}/api/notify/yueyun`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -59,8 +61,41 @@ export async function PATCH(request: Request) {
         }),
       })
     } catch (e) {
-      console.error('Failed to notify yueyun:', e)
+      // 记录但不影响主流程
     }
+
+    // 通知ETC记账系统
+    try {
+      await fetch(`${baseUrl}/api/notify/etc-billing`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          memberId: member.id,
+          action: 'MEMBER_CANCELLED',
+          userId: member.userId,
+          plateNumber: member.plateNumber,
+        }),
+      })
+    } catch (e) {
+      // 记录但不影响主流程
+    }
+
+    // 通知综合服务系统（取消只换不修）
+    try {
+      await fetch(`${baseUrl}/api/notify/comprehensive-service`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          memberId: member.id,
+          action: 'WARRANTY_CANCEL',
+          userId: member.userId,
+        }),
+      })
+    } catch (e) {
+      // 记录但不影响主流程
+    }
+
+    // 注意：不解约互联网系统，等待到期日执行取消时再解约
 
     return NextResponse.json({
       success: true,

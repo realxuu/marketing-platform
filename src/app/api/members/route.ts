@@ -9,7 +9,9 @@ export async function GET(request: Request) {
     const members = await prisma.member.findMany({
       where: userId ? { userId } : undefined,
       include: {
-        user: true,
+        user: {
+          select: { id: true, name: true, phone: true }
+        },
         product: {
           include: {
             rights: {

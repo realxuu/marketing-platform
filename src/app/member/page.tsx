@@ -18,6 +18,7 @@ interface PendingOrder {
 
 interface Member {
   id: string
+  userId: string
   status: string
   startDate: string
   endDate: string
@@ -31,6 +32,9 @@ interface Member {
     name: string
     type: string
     price: number
+  }
+  user?: {
+    id: string
   }
 }
 
@@ -46,13 +50,25 @@ export default function MemberPage() {
   const [activating, setActivating] = useState<string | null>(null)
 
   useEffect(() => {
+    // 从 localStorage 获取当前用户 ID（模拟登录态）
+    const currentUserId = localStorage.getItem('currentUserId')
+
+    // 获取会员信息
     fetch('/api/members')
       .then(res => res.json())
       .then((data: Member[]) => {
-        setMembers(data)
-        if (data.length > 0) {
-          const activeMember = data.find(m => ['TRIAL', 'ACTIVE', 'PENDING_CANCEL'].includes(m.status))
-          setSelectedPlate(activeMember?.plateNumber || data[0]?.plateNumber || null)
+        // 如果有登录态，只显示当前用户的会员
+        const userMembers = currentUserId
+          ? data.filter(m => m.userId === currentUserId || m.user?.id === currentUserId)
+          : data
+
+        setMembers(userMembers)
+        if (userMembers.length > 0) {
+          // 从 localStorage 获取选中的车牌，或默认选第一个有效会员
+          const savedPlate = localStorage.getItem('selectedPlate')
+          const activeMember = userMembers.find(m => ['TRIAL', 'ACTIVE', 'PENDING_CANCEL'].includes(m.status))
+          const defaultPlate = userMembers.find(m => m.plateNumber === savedPlate)?.plateNumber || activeMember?.plateNumber || userMembers[0]?.plateNumber || null
+          setSelectedPlate(defaultPlate)
         }
         setLoading(false)
       })
@@ -172,7 +188,11 @@ export default function MemberPage() {
                   {members.map(m => (
                     <button
                       key={m.id}
-                      onClick={() => { setSelectedPlate(m.plateNumber); setShowPlatePicker(false) }}
+                      onClick={() => {
+                        setSelectedPlate(m.plateNumber)
+                        localStorage.setItem('selectedPlate', m.plateNumber || '')
+                        setShowPlatePicker(false)
+                      }}
                       className={`flex items-center gap-3 w-full px-4 py-3 text-left text-sm hover:bg-gray-50 ${
                         m.plateNumber === selectedPlate ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
                       }`}
@@ -367,13 +387,13 @@ export default function MemberPage() {
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t">
         <div className="max-w-md mx-auto flex">
           <Link href="/" className="flex-1 flex flex-col items-center py-2 text-gray-400">
-            <Crown className="w-5 h-5" /><span className="text-xs mt-1">首页</span>
+            <Car className="w-5 h-5" /><span className="text-xs mt-1">ETC申办</span>
           </Link>
           <Link href="/rights" className="flex-1 flex flex-col items-center py-2 text-gray-400">
             <Shield className="w-5 h-5" /><span className="text-xs mt-1">权益</span>
           </Link>
           <Link href="/member" className="flex-1 flex flex-col items-center py-2 text-blue-600">
-            <Car className="w-5 h-5" /><span className="text-xs mt-1">我的</span>
+            <Crown className="w-5 h-5" /><span className="text-xs mt-1">我的</span>
           </Link>
         </div>
       </nav>
