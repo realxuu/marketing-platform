@@ -24,6 +24,9 @@ function MembershipSelectContent() {
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
   const [agreed, setAgreed] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [checking, setChecking] = useState(true)
+  const [existingMember, setExistingMember] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const plateNumber = searchParams.get('plateNumber') || ''
   const plateColor = searchParams.get('plateColor') || 'BLUE'
@@ -32,6 +35,24 @@ function MembershipSelectContent() {
   const phone = searchParams.get('phone') || ''
 
   useEffect(() => {
+    // 检查该车牌是否已有会员
+    if (plateNumber) {
+      fetch('/api/members')
+        .then(res => res.json())
+        .then((members: { plateNumber: string | null; status: string }[]) => {
+          const hasMember = members.some(m =>
+            m.plateNumber === plateNumber && ['TRIAL', 'ACTIVE', 'PENDING_CANCEL'].includes(m.status)
+          )
+          if (hasMember) {
+            setExistingMember(true)
+          }
+          setChecking(false)
+        })
+        .catch(() => setChecking(false))
+    } else {
+      setChecking(false)
+    }
+
     fetch('/api/products')
       .then(res => res.json())
       .then((data: Product[]) => {
@@ -40,7 +61,7 @@ function MembershipSelectContent() {
           setSelectedProductId(data[0].id)
         }
       })
-  }, [])
+  }, [plateNumber])
 
   const getTypeBadge = (type: string) => {
     const styles: Record<string, string> = {
@@ -76,6 +97,7 @@ function MembershipSelectContent() {
     if (!selectedProductId || !agreed || !phone) return
 
     setLoading(true)
+    setError(null)
     try {
       // 1. 创建或获取用户
       const userRes = await fetch('/api/users', {
@@ -119,12 +141,51 @@ function MembershipSelectContent() {
         // 保存当前用户 ID（模拟登录态）
         localStorage.setItem('currentUserId', user.id)
         router.push('/membership/success')
+      } else {
+        const activateData = await activateRes.json()
+        // 如果是"已有会员"错误，刷新页面显示提示
+        if (activateData.error?.includes('已有生效')) {
+          setExistingMember(true)
+        } else {
+          setError(activateData.error || '激活失败，请重试')
+        }
       }
-    } catch (error) {
-      console.error('Purchase failed:', error)
+    } catch (err) {
+      console.error('Purchase failed:', err)
+      setError('网络错误，请重试')
     } finally {
       setLoading(false)
     }
+  }
+
+  if (checking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <p className="text-gray-500">检查中...</p>
+      </div>
+    )
+  }
+
+  if (existingMember) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-md mx-auto px-4 py-8 text-center">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Shield className="w-8 h-8 text-green-600" />
+          </div>
+          <h2 className="text-lg font-semibold mb-2">该车辆已有会员</h2>
+          <p className="text-gray-500 text-sm mb-6">
+            车牌 <strong>{plateNumber}</strong> 已开通会员服务，每辆车只能购买一个会员
+          </p>
+          <Link href="/member">
+            <Button className="w-full h-11">
+              查看我的会员
+              <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -140,6 +201,13 @@ function MembershipSelectContent() {
       </div>
 
       <div className="max-w-md mx-auto px-4 py-4">
+        {/* 错误提示 */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4 text-sm text-red-700">
+            {error}
+          </div>
+        )}
+
         {/* 签约渠道（来自ETC申办） */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
           <div className="flex items-center justify-between">
