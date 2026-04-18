@@ -2,71 +2,64 @@
 
 import Link from 'next/link'
 import { CheckCircle, Gift, Shield, ChevronRight } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 
 export default function MembershipSuccessPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* 成功提示 */}
-      <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
-        <div className="max-w-md mx-auto px-4 py-12 text-center">
-          <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <CheckCircle className="w-12 h-12" />
+    <div style={{ minHeight: '100vh', background: '#ffffff' }}>
+      {/* Success Header */}
+      <div style={{ background: '#0075de', color: '#ffffff' }}>
+        <div style={{ maxWidth: '768px', margin: '0 auto', padding: '48px 16px', textAlign: 'center' }}>
+          <div style={{ width: 80, height: 80, background: 'rgba(255,255,255,0.2)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+            <CheckCircle style={{ width: 48, height: 48 }} />
           </div>
-          <h1 className="text-2xl font-bold mb-2">开通成功</h1>
-          <p className="text-blue-100">您已成功开通会员服务</p>
+          <h1 style={{ fontSize: '24px', fontWeight: 700, margin: '0 0 8px 0', letterSpacing: '-0.6px' }}>开通成功</h1>
+          <p style={{ color: 'rgba(255,255,255,0.9)', margin: 0, fontSize: '16px' }}>您已成功开通会员服务</p>
         </div>
       </div>
 
-      <div className="max-w-md mx-auto px-4 py-6">
-        {/* 体验期提示 */}
-        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
-          <div className="flex items-center gap-2 mb-2">
-            <Gift className="w-5 h-5 text-orange-500" />
-            <span className="font-medium text-orange-700">2个月免费体验期</span>
+      <main style={{ maxWidth: '768px', margin: '0 auto', padding: '24px 16px' }}>
+        {/* Trial Notice */}
+        <div style={{ background: '#fff7ed', border: '1px solid rgba(221, 91, 0, 0.2)', borderRadius: 12, padding: 16, marginBottom: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <Gift style={{ width: 20, height: 20, color: '#dd5b00' }} />
+            <span style={{ fontWeight: 600, color: '#dd5b00' }}>2个月免费体验期</span>
           </div>
-          <p className="text-sm text-orange-600">
+          <p style={{ fontSize: '14px', color: '#dd5b00', margin: 0 }}>
             体验期内可随时取消，不产生任何费用。体验期结束后将自动扣费开通正式会员。
           </p>
         </div>
 
-        {/* 权益列表 */}
-        <div className="bg-white rounded-xl border p-4 mb-6">
-          <h3 className="font-medium mb-3 flex items-center gap-2">
-            <Shield className="w-4 h-4 text-green-500" />
+        {/* Rights List */}
+        <div style={{ background: '#ffffff', border: '1px solid rgba(0, 0, 0, 0.1)', borderRadius: 12, padding: 16, marginBottom: 24 }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 600, margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: 8, color: 'rgba(0,0,0,0.95)' }}>
+            <Shield style={{ width: 18, height: 18, color: '#1aae39' }} />
             您的专属权益
           </h3>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between py-2 border-b">
-              <span className="text-gray-600">粤运道路救援</span>
-              <span className="text-green-600 text-sm">已开通</span>
-            </div>
-            <div className="flex items-center justify-between py-2 border-b">
-              <span className="text-gray-600">ETC设备只换不修</span>
-              <span className="text-green-600 text-sm">已开通</span>
-            </div>
-            <div className="flex items-center justify-between py-2">
-              <span className="text-gray-600">高速意外险</span>
-              <span className="text-green-600 text-sm">已开通</span>
-            </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {['粤运道路救援', 'ETC设备只换不修', '高速意外险'].map((name) => (
+              <div key={name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgba(0, 0, 0, 0.05)' }}>
+                <span style={{ color: '#615d59' }}>{name}</span>
+                <span style={{ color: '#1aae39', fontSize: '14px', fontWeight: 500 }}>已开通</span>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* 操作按钮 */}
-        <div className="space-y-3">
-          <Link href="/member" className="block">
-            <Button className="w-full h-11">
+        {/* Action Buttons */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <Link href="/member">
+            <button style={{ width: '100%', padding: '12px 16px', background: '#0075de', color: '#fff', border: 'none', borderRadius: 4, fontWeight: 600, fontSize: '15px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
               查看我的会员
-              <ChevronRight className="w-4 h-4" />
-            </Button>
+              <ChevronRight style={{ width: 16, height: 16 }} />
+            </button>
           </Link>
-          <Link href="/" className="block">
-            <Button variant="outline" className="w-full h-11">
+          <Link href="/">
+            <button style={{ width: '100%', padding: '12px 16px', background: 'transparent', color: 'rgba(0,0,0,0.95)', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 4, fontWeight: 500, fontSize: '15px', cursor: 'pointer' }}>
               返回首页
-            </Button>
+            </button>
           </Link>
         </div>
-      </div>
+      </main>
     </div>
   )
 }

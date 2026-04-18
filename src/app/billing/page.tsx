@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Crown, Shield, Car, Calendar } from 'lucide-react'
 import { format } from 'date-fns'
 
@@ -33,92 +31,98 @@ export default function BillingPage() {
       })
   }, [])
 
-  const typeMap: Record<string, { label: string; color: string }> = {
-    MEMBERSHIP_FEE: { label: '会员费', color: 'bg-blue-500' },
-    TOLL_FEE: { label: '通行费', color: 'bg-green-500' },
+  const typeMap: Record<string, { label: string; bg: string; text: string }> = {
+    MEMBERSHIP_FEE: { label: '会员费', bg: '#f2f9ff', text: '#0075de' },
+    TOLL_FEE: { label: '通行费', bg: '#f0fdf4', text: '#1aae39' },
   }
 
   const statusMap: Record<string, { label: string; color: string }> = {
-    SUCCESS: { label: '成功', color: 'text-green-600' },
-    FAILED: { label: '失败', color: 'text-red-600' },
-    PENDING: { label: '处理中', color: 'text-orange-600' },
+    SUCCESS: { label: '成功', color: '#1aae39' },
+    FAILED: { label: '失败', color: '#dc2626' },
+    PENDING: { label: '处理中', color: '#dd5b00' },
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-400">加载中...</div>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#ffffff' }}>
+        <p style={{ color: '#615d59' }}>加载中...</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      {/* 头部 */}
-      <div className="bg-white border-b px-4 py-4">
-        <h1 className="text-lg font-semibold text-center">扣费记录</h1>
-      </div>
+    <div style={{ minHeight: '100vh', background: '#ffffff', paddingBottom: 80 }}>
+      {/* Header */}
+      <header style={{ background: '#ffffff', borderBottom: '1px solid rgba(0, 0, 0, 0.1)' }}>
+        <div style={{ maxWidth: '768px', margin: '0 auto', padding: '16px' }}>
+          <h1 style={{ fontSize: '20px', fontWeight: 600, margin: 0, color: 'rgba(0,0,0,0.95)', letterSpacing: '-0.32px', textAlign: 'center' }}>扣费记录</h1>
+        </div>
+      </header>
 
-      <div className="max-w-md mx-auto p-4">
+      <main style={{ maxWidth: '768px', margin: '0 auto', padding: '16px' }}>
         {records.length === 0 ? (
-          <Card className="text-center py-8">
-            <CardContent>
-              <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500">暂无扣费记录</p>
-            </CardContent>
-          </Card>
+          <div style={{ textAlign: 'center', padding: '48px 16px' }}>
+            <Calendar style={{ width: 48, height: 48, color: '#a39e98', margin: '0 auto 16px' }} />
+            <p style={{ color: '#615d59' }}>暂无扣费记录</p>
+          </div>
         ) : (
-          <div className="space-y-3">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {records.map((record) => (
-              <Card key={record.id}>
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Badge className={`${typeMap[record.type]?.color} text-white`}>
-                          {typeMap[record.type]?.label}
-                        </Badge>
-                        <span className={statusMap[record.status]?.color}>
-                          {statusMap[record.status]?.label}
-                        </span>
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {record.member.product.name} · {record.member.user.name}
-                      </div>
-                      {record.remark && (
-                        <div className="text-xs text-gray-400 mt-1">{record.remark}</div>
-                      )}
-                      <div className="text-xs text-gray-400 mt-1">
-                        {format(new Date(record.createdAt), 'yyyy-MM-dd HH:mm')}
-                      </div>
+              <div
+                key={record.id}
+                style={{
+                  background: '#ffffff',
+                  border: '1px solid rgba(0,0,0,0.1)',
+                  borderRadius: 12,
+                  padding: 16,
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                      <span style={{ background: typeMap[record.type]?.bg, color: typeMap[record.type]?.text, padding: '2px 8px', borderRadius: '9999px', fontSize: '12px', fontWeight: 600 }}>
+                        {typeMap[record.type]?.label}
+                      </span>
+                      <span style={{ fontSize: '13px', color: statusMap[record.status]?.color, fontWeight: 500 }}>
+                        {statusMap[record.status]?.label}
+                      </span>
                     </div>
-                    <div className="text-right">
-                      <div className={`text-lg font-bold ${record.type === 'TOLL_FEE' ? 'text-orange-600' : 'text-blue-600'}`}>
-                        -¥{record.amount.toFixed(2)}
-                      </div>
+                    <div style={{ fontSize: '14px', color: '#615d59' }}>
+                      {record.member.product.name} · {record.member.user.name}
+                    </div>
+                    {record.remark && (
+                      <div style={{ fontSize: '12px', color: '#a39e98', marginTop: 4 }}>{record.remark}</div>
+                    )}
+                    <div style={{ fontSize: '12px', color: '#a39e98', marginTop: 4 }}>
+                      {format(new Date(record.createdAt), 'yyyy-MM-dd HH:mm')}
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: '18px', fontWeight: 700, color: record.type === 'TOLL_FEE' ? '#dd5b00' : '#0075de' }}>
+                      -¥{record.amount.toFixed(2)}
+                    </div>
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
         )}
-      </div>
+      </main>
 
-      {/* 底部导航 */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t">
-        <div className="max-w-md mx-auto flex">
-          <Link href="/" className="flex-1 flex flex-col items-center py-2 text-gray-400">
-            <Crown className="w-5 h-5" />
-            <span className="text-xs mt-1">首页</span>
+      {/* Bottom Navigation */}
+      <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#ffffff', borderTop: '1px solid rgba(0, 0, 0, 0.1)', zIndex: 40 }}>
+        <div style={{ maxWidth: '768px', margin: '0 auto', display: 'flex' }}>
+          <Link href="/" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '12px 0', color: '#a39e98' }}>
+            <Car style={{ width: 20, height: 20 }} />
+            <span style={{ fontSize: 12, marginTop: 4, fontWeight: 500 }}>ETC申办</span>
           </Link>
-          <Link href="/rights" className="flex-1 flex flex-col items-center py-2 text-gray-400">
-            <Shield className="w-5 h-5" />
-            <span className="text-xs mt-1">权益</span>
+          <Link href="/rights" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '12px 0', color: '#a39e98' }}>
+            <Shield style={{ width: 20, height: 20 }} />
+            <span style={{ fontSize: 12, marginTop: 4, fontWeight: 500 }}>权益</span>
           </Link>
-          <Link href="/member" className="flex-1 flex flex-col items-center py-2 text-gray-400">
-            <Car className="w-5 h-5" />
-            <span className="text-xs mt-1">我的</span>
+          <Link href="/member" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '12px 0', color: '#a39e98' }}>
+            <Crown style={{ width: 20, height: 20 }} />
+            <span style={{ fontSize: 12, marginTop: 4, fontWeight: 500 }}>我的</span>
           </Link>
         </div>
       </nav>

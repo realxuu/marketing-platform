@@ -1,13 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Shield, Settings, Users, CreditCard, TrendingUp, DollarSign, FileText, BarChart3, Plus, ArrowUpCircle, ArrowDownCircle, Package, CheckCircle } from 'lucide-react'
+import { Sidebar } from '@/components/admin/Sidebar'
+import { Plus, ArrowUpCircle, ArrowDownCircle, DollarSign } from 'lucide-react'
 import { format } from 'date-fns'
 
 interface Settlement {
@@ -63,201 +58,120 @@ export default function SettlementPage() {
   if (!data) return null
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <aside className="fixed left-0 top-0 bottom-0 w-64 bg-slate-900 text-white p-4">
-        <div className="flex items-center gap-2 mb-8">
-          <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-            <BarChart3 className="w-5 h-5" />
+    <div style={{ minHeight: '100vh', background: '#f6f5f4' }}>
+      <Sidebar activePath="/admin/settlement" />
+
+      <main style={{ marginLeft: 220, padding: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+          <h1 style={{ fontSize: 24, fontWeight: 700, color: 'rgba(0,0,0,0.95)' }}>结算对账</h1>
+          <button onClick={() => setShowAdd(true)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', background: '#0075de', color: '#fff', border: 'none', borderRadius: 6, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+            <Plus style={{ width: 16, height: 16 }} />新增记录
+          </button>
+        </div>
+
+        {/* Stats */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
+          <div style={{ background: '#fff', border: '1px solid rgba(0, 0, 0, 0.1)', borderRadius: 12, padding: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
+            <ArrowUpCircle style={{ width: 32, height: 32, color: '#1aae39' }} />
+            <div>
+              <div style={{ fontSize: 13, color: '#615d59' }}>总收入</div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: '#1aae39' }}>¥{data.summary.income.toFixed(2)}</div>
+            </div>
           </div>
-          <span className="font-bold">营销平台管理</span>
-        </div>
-        <nav className="space-y-1">
-          <Link href="/admin" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white">
-            <TrendingUp className="w-5 h-5" />
-            <span>仪表盘</span>
-          </Link>
-          <Link href="/admin/products" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white">
-            <Package className="w-5 h-5" />
-            <span>产品管理</span>
-          </Link>
-          <Link href="/admin/rights" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white">
-            <Shield className="w-5 h-5" />
-            <span>权益管理</span>
-          </Link>
-          <Link href="/admin/usages" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white">
-            <CheckCircle className="w-5 h-5" />
-            <span>权益核销</span>
-          </Link>
-          <Link href="/admin/orders" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white">
-            <FileText className="w-5 h-5" />
-            <span>订单管理</span>
-          </Link>
-          <Link href="/admin/members" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white">
-            <Users className="w-5 h-5" />
-            <span>会员管理</span>
-          </Link>
-          <Link href="/admin/billing-control" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white">
-            <CreditCard className="w-5 h-5" />
-            <span>扣费控制</span>
-          </Link>
-          <Link href="/admin/settlement" className="flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-800 text-white">
-            <DollarSign className="w-5 h-5" />
-            <span>结算对账</span>
-          </Link>
-          {/* <Link href="/admin/settings" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white">
-            <Settings className="w-5 h-5" />
-            <span>系统配置</span>
-          </Link> */}
-        </nav>
-      </aside>
-
-      <main className="ml-64 p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold">结算对账</h1>
-          <Button onClick={() => setShowAdd(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            新增记录
-          </Button>
+          <div style={{ background: '#fff', border: '1px solid rgba(0, 0, 0, 0.1)', borderRadius: 12, padding: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
+            <ArrowDownCircle style={{ width: 32, height: 32, color: '#dc2626' }} />
+            <div>
+              <div style={{ fontSize: 13, color: '#615d59' }}>总支出</div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: '#dc2626' }}>¥{data.summary.expense.toFixed(2)}</div>
+            </div>
+          </div>
+          <div style={{ background: '#fff', border: '1px solid rgba(0, 0, 0, 0.1)', borderRadius: 12, padding: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
+            <DollarSign style={{ width: 32, height: 32, color: '#0075de' }} />
+            <div>
+              <div style={{ fontSize: 13, color: '#615d59' }}>净利润</div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: '#0075de' }}>¥{data.summary.profit.toFixed(2)}</div>
+            </div>
+          </div>
+          <div style={{ background: '#fff', border: '1px solid rgba(0, 0, 0, 0.1)', borderRadius: 12, padding: 16 }}>
+            <div style={{ fontSize: 13, color: '#615d59', marginBottom: 4 }}>待处理</div>
+            <div style={{ fontSize: 14 }}>
+              <span style={{ color: '#1aae39' }}>+¥{data.summary.pendingIncome.toFixed(2)}</span>
+              <span style={{ margin: '0 8px', color: '#ebebeb' }}>|</span>
+              <span style={{ color: '#dc2626' }}>-¥{data.summary.pendingExpense.toFixed(2)}</span>
+            </div>
+          </div>
         </div>
 
-        {/* 统计卡片 */}
-        <div className="grid grid-cols-4 gap-4 mb-6">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <ArrowUpCircle className="w-8 h-8 text-green-500" />
-                <div>
-                  <div className="text-sm text-gray-500">总收入</div>
-                  <div className="text-xl font-bold text-green-600">¥{data.summary.income.toFixed(2)}</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <ArrowDownCircle className="w-8 h-8 text-red-500" />
-                <div>
-                  <div className="text-sm text-gray-500">总支出</div>
-                  <div className="text-xl font-bold text-red-600">¥{data.summary.expense.toFixed(2)}</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <DollarSign className="w-8 h-8 text-blue-500" />
-                <div>
-                  <div className="text-sm text-gray-500">净利润</div>
-                  <div className="text-xl font-bold text-blue-600">¥{data.summary.profit.toFixed(2)}</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="text-sm text-gray-500 mb-1">待处理</div>
-              <div className="text-lg">
-                <span className="text-green-600">+¥{data.summary.pendingIncome.toFixed(2)}</span>
-                <span className="mx-2 text-gray-300">|</span>
-                <span className="text-red-600">-¥{data.summary.pendingExpense.toFixed(2)}</span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* 新增表单 */}
+        {/* Add Form */}
         {showAdd && (
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle className="text-base">新增结算记录</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <Label>类型</Label>
-                  <select
-                    className="w-full h-9 rounded-md border border-gray-200 px-3"
-                    value={formData.type}
-                    onChange={e => setFormData({ ...formData, type: e.target.value })}
-                  >
-                    <option value="INCOME">收入</option>
-                    <option value="EXPENSE">支出</option>
-                  </select>
-                </div>
-                <div>
-                  <Label>金额</Label>
-                  <Input
-                    type="number"
-                    value={formData.amount}
-                    onChange={e => setFormData({ ...formData, amount: e.target.value })}
-                    placeholder="请输入金额"
-                  />
-                </div>
-                <div>
-                  <Label>说明</Label>
-                  <Input
-                    value={formData.description}
-                    onChange={e => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="请输入说明"
-                  />
-                </div>
+          <div style={{ background: '#fff', border: '1px solid rgba(0, 0, 0, 0.1)', borderRadius: 12, marginBottom: 24 }}>
+            <div style={{ padding: '12px 16px', borderBottom: '1px solid rgba(0, 0, 0, 0.1)' }}>
+              <h2 style={{ fontSize: 14, fontWeight: 600, margin: 0 }}>新增结算记录</h2>
+            </div>
+            <div style={{ padding: 16, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, marginBottom: 6 }}>类型</label>
+                <select value={formData.type} onChange={e => setFormData({ ...formData, type: e.target.value })} style={{ width: '100%', border: '1px solid rgba(0, 0, 0, 0.1)', borderRadius: 6, padding: '8px 12px', fontSize: 14, background: '#fff' }}>
+                  <option value="INCOME">收入</option>
+                  <option value="EXPENSE">支出</option>
+                </select>
               </div>
-              <div className="flex justify-end gap-2 mt-4">
-                <Button variant="outline" onClick={() => setShowAdd(false)}>取消</Button>
-                <Button onClick={handleAdd}>确认添加</Button>
+              <div>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, marginBottom: 6 }}>金额</label>
+                <input type="number" value={formData.amount} onChange={e => setFormData({ ...formData, amount: e.target.value })} placeholder="请输入金额" style={{ width: '100%', border: '1px solid rgba(0, 0, 0, 0.1)', borderRadius: 6, padding: '8px 12px', fontSize: 14 }} />
               </div>
-            </CardContent>
-          </Card>
+              <div>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, marginBottom: 6 }}>说明</label>
+                <input value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} placeholder="请输入说明" style={{ width: '100%', border: '1px solid rgba(0, 0, 0, 0.1)', borderRadius: 6, padding: '8px 12px', fontSize: 14 }} />
+              </div>
+            </div>
+            <div style={{ padding: '12px 16px', borderTop: '1px solid rgba(0, 0, 0, 0.05)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+              <button onClick={() => setShowAdd(false)} style={{ padding: '8px 16px', background: 'transparent', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 6, fontSize: 14, cursor: 'pointer' }}>取消</button>
+              <button onClick={handleAdd} style={{ padding: '8px 16px', background: '#0075de', color: '#fff', border: 'none', borderRadius: 6, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>确认添加</button>
+            </div>
+          </div>
         )}
 
-        {/* 记录列表 */}
-        <Card>
-          <CardContent className="p-0">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b">
-                <tr>
-                  <th className="text-left p-4 font-medium">类型</th>
-                  <th className="text-left p-4 font-medium">金额</th>
-                  <th className="text-left p-4 font-medium">说明</th>
-                  <th className="text-left p-4 font-medium">状态</th>
-                  <th className="text-left p-4 font-medium">时间</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.settlements.map((item) => (
-                  <tr key={item.id} className="border-b last:border-0 hover:bg-gray-50">
-                    <td className="p-4">
-                      <div className="flex items-center gap-2">
-                        {item.type === 'INCOME' ? (
-                          <ArrowUpCircle className="w-5 h-5 text-green-500" />
-                        ) : (
-                          <ArrowDownCircle className="w-5 h-5 text-red-500" />
-                        )}
-                        <span>{item.type === 'INCOME' ? '收入' : '支出'}</span>
-                      </div>
-                    </td>
-                    <td className="p-4 font-medium">
-                      <span className={item.type === 'INCOME' ? 'text-green-600' : 'text-red-600'}>
-                        {item.type === 'INCOME' ? '+' : '-'}¥{item.amount.toFixed(2)}
-                      </span>
-                    </td>
-                    <td className="p-4 text-gray-500">{item.description || '-'}</td>
-                    <td className="p-4">
-                      <Badge className={item.status === 'COMPLETED' ? 'bg-green-500' : 'bg-yellow-500'}>
-                        {item.status === 'COMPLETED' ? '已完成' : '待处理'}
-                      </Badge>
-                    </td>
-                    <td className="p-4 text-gray-500 text-sm">
-                      {format(new Date(item.createdAt), 'yyyy-MM-dd HH:mm')}
-                    </td>
-                  </tr>
+        {/* List */}
+        <div style={{ background: '#fff', border: '1px solid rgba(0, 0, 0, 0.1)', borderRadius: 12, overflow: 'hidden' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ background: '#f6f5f4', borderBottom: '1px solid rgba(0, 0, 0, 0.1)' }}>
+                {['类型', '金额', '说明', '状态', '时间'].map(h => (
+                  <th key={h} style={{ textAlign: 'left', padding: '12px 16px', fontWeight: 500, fontSize: 13, color: '#615d59' }}>{h}</th>
                 ))}
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
+              </tr>
+            </thead>
+            <tbody>
+              {data.settlements.map((item) => (
+                <tr key={item.id} style={{ borderBottom: '1px solid rgba(0, 0, 0, 0.05)' }}>
+                  <td style={{ padding: '12px 16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      {item.type === 'INCOME' ? (
+                        <ArrowUpCircle style={{ width: 18, height: 18, color: '#1aae39' }} />
+                      ) : (
+                        <ArrowDownCircle style={{ width: 18, height: 18, color: '#dc2626' }} />
+                      )}
+                      <span>{item.type === 'INCOME' ? '收入' : '支出'}</span>
+                    </div>
+                  </td>
+                  <td style={{ padding: '12px 16px', fontWeight: 600 }}>
+                    <span style={{ color: item.type === 'INCOME' ? '#1aae39' : '#dc2626' }}>
+                      {item.type === 'INCOME' ? '+' : '-'}¥{item.amount.toFixed(2)}
+                    </span>
+                  </td>
+                  <td style={{ padding: '12px 16px', color: '#615d59' }}>{item.description || '-'}</td>
+                  <td style={{ padding: '12px 16px' }}>
+                    <span style={{ background: item.status === 'COMPLETED' ? '#f0fdf4' : '#fff7ed', color: item.status === 'COMPLETED' ? '#1aae39' : '#dd5b00', padding: '4px 10px', borderRadius: 9999, fontSize: 12, fontWeight: 500 }}>
+                      {item.status === 'COMPLETED' ? '已完成' : '待处理'}
+                    </span>
+                  </td>
+                  <td style={{ padding: '12px 16px', fontSize: 13, color: '#615d59' }}>{format(new Date(item.createdAt), 'yyyy-MM-dd HH:mm')}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </main>
     </div>
   )

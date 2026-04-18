@@ -2,9 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Crown, Shield, Car, ChevronRight, LogOut, AlertTriangle, ChevronDown, Zap } from 'lucide-react'
 import { format } from 'date-fns'
 
@@ -50,21 +47,17 @@ export default function MemberPage() {
   const [activating, setActivating] = useState<string | null>(null)
 
   useEffect(() => {
-    // 从 localStorage 获取当前用户 ID（模拟登录态）
     const currentUserId = localStorage.getItem('currentUserId')
 
-    // 获取会员信息
     fetch('/api/members')
       .then(res => res.json())
       .then((data: Member[]) => {
-        // 如果有登录态，只显示当前用户的会员
         const userMembers = currentUserId
           ? data.filter(m => m.userId === currentUserId || m.user?.id === currentUserId)
           : data
 
         setMembers(userMembers)
         if (userMembers.length > 0) {
-          // 从 localStorage 获取选中的车牌，或默认选第一个有效会员
           const savedPlate = localStorage.getItem('selectedPlate')
           const activeMember = userMembers.find(m => ['TRIAL', 'ACTIVE', 'PENDING_CANCEL'].includes(m.status))
           const defaultPlate = userMembers.find(m => m.plateNumber === savedPlate)?.plateNumber || activeMember?.plateNumber || userMembers[0]?.plateNumber || null
@@ -72,7 +65,6 @@ export default function MemberPage() {
         }
         setLoading(false)
 
-        // 只有当用户没有任何会员时，才查询待激活订单（ETC申办后等待激活）
         if (userMembers.length === 0 && currentUserId) {
           return fetch(`/api/orders?status=PENDING_ACTIVATION&userId=${currentUserId}`)
             .then(res => res.json())
@@ -93,11 +85,11 @@ export default function MemberPage() {
   const currentMember = members.find(m => m.plateNumber === selectedPlate) || members[0] || null
 
   const statusMap: Record<string, { label: string; color: string; bg: string }> = {
-    TRIAL: { label: '体验期', color: 'text-orange-600', bg: 'bg-orange-100' },
-    ACTIVE: { label: '生效中', color: 'text-green-600', bg: 'bg-green-100' },
-    EXPIRED: { label: '已过期', color: 'text-gray-600', bg: 'bg-gray-100' },
-    CANCELLED: { label: '已取消', color: 'text-red-600', bg: 'bg-red-100' },
-    PENDING_CANCEL: { label: '待取消', color: 'text-amber-600', bg: 'bg-amber-100' },
+    TRIAL: { label: '体验期', color: '#dd5b00', bg: '#fff7ed' },
+    ACTIVE: { label: '生效中', color: '#1aae39', bg: '#f0fdf4' },
+    EXPIRED: { label: '已过期', color: '#615d59', bg: '#f6f5f4' },
+    CANCELLED: { label: '已取消', color: '#dc2626', bg: '#fef2f2' },
+    PENDING_CANCEL: { label: '待取消', color: '#dd5b00', bg: '#fffbeb' },
   }
 
   const cancelReasonMap: Record<string, string> = {
@@ -107,8 +99,7 @@ export default function MemberPage() {
     ETC_CANCELLED: 'ETC注销取消',
   }
 
-  const plateColorMap: Record<string, string> = { BLUE: '蓝', YELLOW: '黄', GREEN: '绿' }
-  const plateColorDot: Record<string, string> = { BLUE: 'bg-blue-500', YELLOW: 'bg-yellow-500', GREEN: 'bg-green-500' }
+  const plateColorDot: Record<string, string> = { BLUE: '#0075de', YELLOW: '#f59e0b', GREEN: '#22c55e' }
 
   const daysLeft = currentMember
     ? Math.max(0, Math.ceil((new Date(currentMember.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
@@ -165,30 +156,30 @@ export default function MemberPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-400">加载中...</div>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#ffffff' }}>
+        <p style={{ color: '#615d59' }}>加载中...</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div style={{ minHeight: '100vh', background: '#ffffff', paddingBottom: 80 }}>
       {/* 顶部会员卡 */}
-      <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white px-4 pt-12 pb-8 rounded-b-3xl">
-        <div className="max-w-md mx-auto">
+      <div style={{ background: 'linear-gradient(135deg, #0075de 0%, #097fe8 50%, #005bb5 100%)', color: '#ffffff', padding: '48px 16px 32px', borderRadius: '0 0 24px 24px' }}>
+        <div style={{ maxWidth: '768px', margin: '0 auto' }}>
           {/* 车牌切换 */}
           {members.length > 1 && (
-            <div className="mb-4 relative">
+            <div style={{ marginBottom: 16, position: 'relative' }}>
               <button
                 onClick={() => setShowPlatePicker(!showPlatePicker)}
-                className="flex items-center gap-2 text-sm bg-white/15 rounded-full px-4 py-1.5"
+                style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 9999, padding: '6px 16px', color: '#fff', fontSize: 14, cursor: 'pointer' }}
               >
-                <span className={`w-2 h-2 rounded-full ${plateColorDot[currentMember?.plateColor || 'BLUE']}`} />
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: plateColorDot[currentMember?.plateColor || 'BLUE'] }} />
                 <span>{currentMember?.plateNumber || '选择车辆'}</span>
-                <ChevronDown className="w-3.5 h-3.5" />
+                <ChevronDown style={{ width: 14, height: 14 }} />
               </button>
               {showPlatePicker && (
-                <div className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-xl z-10 overflow-hidden min-w-[200px]">
+                <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: 8, background: '#fff', borderRadius: 12, boxShadow: '0 4px 20px rgba(0,0,0,0.15)', zIndex: 10, overflow: 'hidden', minWidth: 200 }}>
                   {members.map(m => (
                     <button
                       key={m.id}
@@ -197,15 +188,25 @@ export default function MemberPage() {
                         localStorage.setItem('selectedPlate', m.plateNumber || '')
                         setShowPlatePicker(false)
                       }}
-                      className={`flex items-center gap-3 w-full px-4 py-3 text-left text-sm hover:bg-gray-50 ${
-                        m.plateNumber === selectedPlate ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
-                      }`}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 12,
+                        width: '100%',
+                        padding: '12px 16px',
+                        border: 'none',
+                        background: m.plateNumber === selectedPlate ? '#f2f9ff' : '#fff',
+                        color: m.plateNumber === selectedPlate ? '#0075de' : '#615d59',
+                        fontSize: 14,
+                        cursor: 'pointer',
+                        textAlign: 'left' as const,
+                      }}
                     >
-                      <span className={`w-2 h-2 rounded-full ${plateColorDot[m.plateColor || 'BLUE']}`} />
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: plateColorDot[m.plateColor || 'BLUE'] }} />
                       <span>{m.plateNumber}</span>
-                      <Badge className={`ml-auto text-xs ${statusMap[m.status]?.bg} ${statusMap[m.status]?.color}`}>
+                      <span style={{ marginLeft: 'auto', background: statusMap[m.status]?.bg, color: statusMap[m.status]?.color, padding: '2px 8px', borderRadius: 9999, fontSize: 12 }}>
                         {statusMap[m.status]?.label}
-                      </Badge>
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -214,67 +215,67 @@ export default function MemberPage() {
           )}
 
           {!currentMember ? (
-            <div className="text-center py-6">
-              <Crown className="w-12 h-12 text-white/40 mx-auto mb-3" />
-              <p className="text-white/70 mb-4">您还未开通会员</p>
+            <div style={{ textAlign: 'center', padding: '32px 0' }}>
+              <Crown style={{ width: 48, height: 48, color: 'rgba(255,255,255,0.4)', margin: '0 auto 12px' }} />
+              <p style={{ color: 'rgba(255,255,255,0.7)', marginBottom: 16 }}>您还未开通会员</p>
               <Link href="/">
-                <Button className="bg-white text-blue-700 hover:bg-white/90">立即开通</Button>
+                <button style={{ background: '#fff', color: '#0075de', border: 'none', padding: '10px 24px', borderRadius: 4, fontWeight: 600, cursor: 'pointer' }}>立即开通</button>
               </Link>
             </div>
           ) : (
             <>
               {/* 会员卡主体 */}
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-yellow-400/20 rounded-full flex items-center justify-center">
-                    <Crown className="w-5 h-5 text-yellow-300" />
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ width: 40, height: 40, background: 'rgba(255,255,255,0.2)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Crown style={{ width: 20, height: 20, color: '#fcd34d' }} />
                   </div>
                   <div>
-                    <div className="font-semibold text-lg">{currentMember.product.name}</div>
+                    <div style={{ fontWeight: 600, fontSize: 18 }}>{currentMember.product.name}</div>
                     {currentMember.plateNumber && (
-                      <div className="text-blue-200 text-xs flex items-center gap-1">
-                        <span className={`w-1.5 h-1.5 rounded-full ${plateColorDot[currentMember.plateColor || 'BLUE']}`} />
+                      <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: plateColorDot[currentMember.plateColor || 'BLUE'] }} />
                         {currentMember.plateNumber}
                       </div>
                     )}
                   </div>
                 </div>
-                <Badge className={`${statusMap[currentMember.status]?.bg} ${statusMap[currentMember.status]?.color} text-xs`}>
+                <span style={{ background: statusMap[currentMember.status]?.bg, color: statusMap[currentMember.status]?.color, padding: '4px 12px', borderRadius: 9999, fontSize: 12, fontWeight: 500 }}>
                   {statusMap[currentMember.status]?.label}
-                </Badge>
+                </span>
               </div>
 
               {/* 关键数据 */}
-              <div className="grid grid-cols-3 gap-4 bg-white/10 rounded-2xl p-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold">{daysLeft}</div>
-                  <div className="text-blue-200 text-xs mt-0.5">{currentMember.isTrial ? '试用剩余' : '剩余天数'}</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, background: 'rgba(255,255,255,0.1)', borderRadius: 16, padding: 16 }}>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 24, fontWeight: 700 }}>{daysLeft}</div>
+                  <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12, marginTop: 2 }}>{currentMember.isTrial ? '试用剩余' : '剩余天数'}</div>
                 </div>
-                <div className="text-center border-x border-white/10">
-                  <div className="text-lg font-bold">{format(new Date(currentMember.startDate), 'yyyy/MM/dd')}</div>
-                  <div className="text-blue-200 text-xs mt-0.5">开通日期</div>
+                <div style={{ textAlign: 'center', borderLeft: '1px solid rgba(255,255,255,0.1)', borderRight: '1px solid rgba(255,255,255,0.1)' }}>
+                  <div style={{ fontSize: 16, fontWeight: 600 }}>{format(new Date(currentMember.startDate), 'MM/dd')}</div>
+                  <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12, marginTop: 2 }}>开通日期</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-lg font-bold">{format(new Date(currentMember.endDate), 'yyyy/MM/dd')}</div>
-                  <div className="text-blue-200 text-xs mt-0.5">到期日期</div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 16, fontWeight: 600 }}>{format(new Date(currentMember.endDate), 'MM/dd')}</div>
+                  <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12, marginTop: 2 }}>到期日期</div>
                 </div>
               </div>
 
               {/* 体验期提示 */}
               {currentMember.isTrial && (
-                <div className="mt-3 text-center text-sm text-orange-200 bg-orange-500/20 rounded-full py-1.5">
-                  🎉 免费体验期中，到期后自动扣费
+                <div style={{ marginTop: 12, textAlign: 'center', fontSize: 14, color: '#fef3c7', background: 'rgba(251, 191, 36, 0.2)', borderRadius: 9999, padding: '8px 16px' }}>
+                  免费体验期中，到期后自动扣费
                 </div>
               )}
 
               {/* 待取消提示 */}
               {currentMember.status === 'PENDING_CANCEL' && (
-                <div className="mt-3 bg-amber-500/20 rounded-xl p-3">
-                  <div className="flex items-start gap-2">
-                    <AlertTriangle className="w-4 h-4 text-amber-300 mt-0.5 flex-shrink-0" />
-                    <div className="text-sm text-amber-100">
-                      <p className="font-medium">会员取消中</p>
-                      <p className="text-amber-200 text-xs mt-0.5">
+                <div style={{ marginTop: 12, background: 'rgba(251, 191, 36, 0.2)', borderRadius: 12, padding: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                    <AlertTriangle style={{ width: 16, height: 16, color: '#fcd34d', marginTop: 2, flexShrink: 0 }} />
+                    <div style={{ fontSize: 14 }}>
+                      <p style={{ fontWeight: 500, margin: 0 }}>会员取消中</p>
+                      <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: 12, marginTop: 4 }}>
                         权益保留至 {format(new Date(currentMember.endDate), 'yyyy-MM-dd')} 到期
                         {currentMember.cancelReason && ` · ${cancelReasonMap[currentMember.cancelReason]}`}
                       </p>
@@ -288,70 +289,95 @@ export default function MemberPage() {
       </div>
 
       {/* 功能区域 */}
-      <div className="max-w-md mx-auto px-4 -mt-2">
+      <div style={{ maxWidth: '768px', margin: '0 auto', padding: '24px 16px' }}>
         {/* 待激活订单 */}
         {pendingOrders.length > 0 && (
-          <div className="space-y-3 mt-4">
-            <h3 className="text-sm font-medium text-gray-500 px-1">待激活订单</h3>
+          <div style={{ marginBottom: 16 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 500, color: '#615d59', marginBottom: 12 }}>待激活订单</h3>
             {pendingOrders.map(order => (
-              <Card key={order.id} className="overflow-hidden border-blue-200 bg-blue-50/50">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <Zap className="w-4 h-4 text-blue-600" />
-                      <span className="font-medium text-sm">{order.product.name}</span>
-                    </div>
-                    <Badge className="bg-blue-500 text-white text-xs">待激活</Badge>
+              <div
+                key={order.id}
+                style={{
+                  background: '#f2f9ff',
+                  border: '1px solid rgba(0, 117, 222, 0.2)',
+                  borderRadius: 12,
+                  padding: 16,
+                  marginBottom: 12,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Zap style={{ width: 16, height: 16, color: '#0075de' }} />
+                    <span style={{ fontWeight: 500, fontSize: 14 }}>{order.product.name}</span>
                   </div>
-                  <div className="text-xs text-gray-500 mb-3">
-                    <p>申办时间：{format(new Date(order.createdAt), 'yyyy-MM-dd HH:mm')}</p>
-                    <p>签约渠道：{order.channel === 'ALIPAY' ? '支付宝' : order.channel === 'WECHAT' ? '微信' : order.channel || '-'}</p>
-                  </div>
-                  <Button
-                    className="w-full"
-                    size="sm"
-                    onClick={() => handleActivate(order.id)}
-                    disabled={activating === order.id}
-                  >
-                    {activating === order.id ? '激活中...' : '模拟ETC激活（演示）'}
-                  </Button>
-                  <p className="text-xs text-gray-400 mt-2 text-center">收到ETC产品后激活，自动扣费开通会员</p>
-                </CardContent>
-              </Card>
+                  <span style={{ background: '#0075de', color: '#fff', padding: '2px 8px', borderRadius: 9999, fontSize: 12 }}>待激活</span>
+                </div>
+                <div style={{ fontSize: 12, color: '#615d59', marginBottom: 12 }}>
+                  <p>申办时间：{format(new Date(order.createdAt), 'yyyy-MM-dd HH:mm')}</p>
+                  <p>签约渠道：{order.channel === 'ALIPAY' ? '支付宝' : order.channel === 'WECHAT' ? '微信' : order.channel || '-'}</p>
+                </div>
+                <button
+                  style={{ width: '100%', padding: '10px 16px', background: '#0075de', color: '#fff', border: 'none', borderRadius: 4, fontWeight: 600, cursor: 'pointer', opacity: activating === order.id ? 0.7 : 1 }}
+                  onClick={() => handleActivate(order.id)}
+                  disabled={activating === order.id}
+                >
+                  {activating === order.id ? '激活中...' : '模拟ETC激活（演示）'}
+                </button>
+                <p style={{ fontSize: 12, color: '#a39e98', textAlign: 'center', marginTop: 8 }}>收到ETC产品后激活，自动扣费开通会员</p>
+              </div>
             ))}
           </div>
         )}
 
         {currentMember && (
-          <div className="space-y-3 mt-4">
-            <Card className="overflow-hidden">
-              <CardContent className="p-0">
-                <Link href="/rights" className="flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
-                      <Shield className="w-4 h-4 text-orange-600" />
-                    </div>
-                    <span className="text-sm font-medium">权益中心</span>
+          <div>
+            <div
+              style={{
+                background: '#ffffff',
+                border: '1px solid rgba(0, 0, 0, 0.1)',
+                borderRadius: 12,
+                overflow: 'hidden',
+                marginBottom: 12,
+              }}
+            >
+              <Link href="/rights" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', color: 'inherit', textDecoration: 'none' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ width: 32, height: 32, background: '#fff7ed', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Shield style={{ width: 16, height: 16, color: '#dd5b00' }} />
                   </div>
-                  <ChevronRight className="w-4 h-4 text-gray-300" />
-                </Link>
-              </CardContent>
-            </Card>
+                  <span style={{ fontSize: 14, fontWeight: 500 }}>权益中心</span>
+                </div>
+                <ChevronRight style={{ width: 16, height: 16, color: '#a39e98' }} />
+              </Link>
+            </div>
 
             {currentMember.status !== 'CANCELLED' && currentMember.status !== 'EXPIRED' && currentMember.status !== 'PENDING_CANCEL' && (
-              <Button
-                variant="outline"
-                className="w-full text-red-500 border-gray-200 hover:bg-red-50 hover:border-red-200 h-11"
+              <button
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  background: 'transparent',
+                  color: '#dc2626',
+                  border: '1px solid rgba(0, 0, 0, 0.1)',
+                  borderRadius: 4,
+                  fontWeight: 500,
+                  fontSize: 15,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                }}
                 onClick={() => setShowCancelDialog(true)}
               >
-                <LogOut className="w-4 h-4 mr-2" />
+                <LogOut style={{ width: 16, height: 16 }} />
                 取消会员服务
-              </Button>
+              </button>
             )}
 
-            <div className="text-xs text-gray-400 px-1 space-y-1 pt-1">
-              <p>• 每辆车只能购买一个会员产品</p>
-              <p>• 体验期内取消即时生效，不产生费用</p>
+            <div style={{ fontSize: 12, color: '#a39e98', marginTop: 12 }}>
+              <p style={{ marginBottom: 4 }}>• 每辆车只能购买一个会员产品</p>
+              <p style={{ marginBottom: 4 }}>• 体验期内取消即时生效，不产生费用</p>
               <p>• 会员生效后取消，权益保留至到期日</p>
             </div>
           </div>
@@ -360,44 +386,45 @@ export default function MemberPage() {
 
       {/* 取消确认弹窗 */}
       {showCancelDialog && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <Card className="w-full max-w-md">
-            <CardContent className="pt-6">
-              <div className="flex items-start gap-3 mb-4">
-                <AlertTriangle className="w-6 h-6 text-amber-600 mt-0.5" />
-                <div>
-                  <h3 className="font-semibold text-lg">确认取消会员服务？</h3>
-                  <p className="text-sm text-gray-500 mt-1">请仔细阅读以下内容</p>
-                </div>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div style={{ background: '#fff', borderRadius: 12, maxWidth: 400, width: '100%', padding: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 16 }}>
+              <AlertTriangle style={{ width: 24, height: 24, color: '#dd5b00', marginTop: 2 }} />
+              <div>
+                <h3 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>确认取消会员服务？</h3>
+                <p style={{ fontSize: 14, color: '#615d59', marginTop: 4 }}>请仔细阅读以下内容</p>
               </div>
-              <div className="text-sm text-gray-600 space-y-2 mb-6">
-                <p>1. 取消后权益将保留至 {currentMember ? format(new Date(currentMember.endDate), 'yyyy-MM-dd') : '到期日'}，到期后正式取消。</p>
-                <p>2. 只换不修服务将延续至会员期结束。</p>
-                <p>3. 取消后不进行退款。</p>
-                <p>4. 取消后将通知粤运暂停权益服务。</p>
-              </div>
-              <div className="flex gap-3">
-                <Button variant="outline" onClick={() => setShowCancelDialog(false)} className="flex-1">再想想</Button>
-                <Button variant="destructive" onClick={handleCancel} disabled={cancelling || countdown > 0} className="flex-1">
-                  {cancelling ? '取消中...' : countdown > 0 ? `请阅读 (${countdown}s)` : '确认取消'}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+            <div style={{ fontSize: 14, color: '#615d59', marginBottom: 24 }}>
+              <p style={{ marginBottom: 8 }}>1. 取消后权益将保留至 {currentMember ? format(new Date(currentMember.endDate), 'yyyy-MM-dd') : '到期日'}，到期后正式取消。</p>
+              <p style={{ marginBottom: 8 }}>2. 只换不修服务将延续至会员期结束。</p>
+              <p style={{ marginBottom: 8 }}>3. 取消后不进行退款。</p>
+              <p>4. 取消后将通知粤运暂停权益服务。</p>
+            </div>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button onClick={() => setShowCancelDialog(false)} style={{ flex: 1, padding: '12px 16px', background: 'transparent', color: 'rgba(0,0,0,0.95)', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 4, fontWeight: 500, cursor: 'pointer' }}>再想想</button>
+              <button onClick={handleCancel} disabled={cancelling || countdown > 0} style={{ flex: 1, padding: '12px 16px', background: cancelling || countdown > 0 ? '#f6f5f4' : '#dc2626', color: cancelling || countdown > 0 ? '#a39e98' : '#fff', border: 'none', borderRadius: 4, fontWeight: 600, cursor: cancelling || countdown > 0 ? 'not-allowed' : 'pointer' }}>
+                {cancelling ? '取消中...' : countdown > 0 ? `请阅读 (${countdown}s)` : '确认取消'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
       {/* 底部导航 */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t">
-        <div className="max-w-md mx-auto flex">
-          <Link href="/" className="flex-1 flex flex-col items-center py-2 text-gray-400">
-            <Car className="w-5 h-5" /><span className="text-xs mt-1">ETC申办</span>
+      <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#ffffff', borderTop: '1px solid rgba(0, 0, 0, 0.1)', zIndex: 40 }}>
+        <div style={{ maxWidth: '768px', margin: '0 auto', display: 'flex' }}>
+          <Link href="/" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '12px 0', color: '#a39e98' }}>
+            <Car style={{ width: 20, height: 20 }} />
+            <span style={{ fontSize: 12, marginTop: 4, fontWeight: 500 }}>ETC申办</span>
           </Link>
-          <Link href="/rights" className="flex-1 flex flex-col items-center py-2 text-gray-400">
-            <Shield className="w-5 h-5" /><span className="text-xs mt-1">权益</span>
+          <Link href="/rights" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '12px 0', color: '#a39e98' }}>
+            <Shield style={{ width: 20, height: 20 }} />
+            <span style={{ fontSize: 12, marginTop: 4, fontWeight: 500 }}>权益</span>
           </Link>
-          <Link href="/member" className="flex-1 flex flex-col items-center py-2 text-blue-600">
-            <Crown className="w-5 h-5" /><span className="text-xs mt-1">我的</span>
+          <Link href="/member" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '12px 0', color: '#0075de' }}>
+            <Crown style={{ width: 20, height: 20 }} />
+            <span style={{ fontSize: 12, marginTop: 4, fontWeight: 500 }}>我的</span>
           </Link>
         </div>
       </nav>

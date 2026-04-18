@@ -2,9 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Users, CreditCard, TrendingUp, DollarSign, Settings, Shield, FileText, BarChart3, Package, CheckCircle, RotateCcw } from 'lucide-react'
+import { Users, CreditCard, TrendingUp, DollarSign, Shield, FileText, Package, CheckCircle, RotateCcw } from 'lucide-react'
 
 interface Stats {
   totalUsers: number
@@ -21,6 +19,57 @@ interface Stats {
     createdAt: string
     member: { user: { name: string } }
   }[]
+}
+
+const navItems = [
+  { href: '/admin', icon: TrendingUp, label: '仪表盘' },
+  { href: '/admin/products', icon: Package, label: '产品管理' },
+  { href: '/admin/rights', icon: Shield, label: '权益管理' },
+  { href: '/admin/usages', icon: CheckCircle, label: '权益核销' },
+  { href: '/admin/orders', icon: FileText, label: '订单管理' },
+  { href: '/admin/members', icon: Users, label: '会员管理' },
+  { href: '/admin/billing-control', icon: CreditCard, label: '扣费控制' },
+  { href: '/admin/settlement', icon: DollarSign, label: '结算对账' },
+]
+
+function Sidebar({ activePath }: { activePath: string }) {
+  return (
+    <aside style={{ position: 'fixed', left: 0, top: 0, bottom: 0, width: 220, background: '#1e293b', color: '#fff', padding: 16, display: 'flex', flexDirection: 'column' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 32 }}>
+        <div style={{ width: 32, height: 32, background: '#0075de', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <TrendingUp style={{ width: 18, height: 18 }} />
+        </div>
+        <span style={{ fontWeight: 600, fontSize: 14 }}>营销平台管理</span>
+      </div>
+      <nav style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {navItems.map(item => (
+          <Link
+            key={item.href}
+            href={item.href}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              padding: '10px 12px',
+              borderRadius: 8,
+              color: activePath === item.href ? '#fff' : '#94a3b8',
+              background: activePath === item.href ? '#334155' : 'transparent',
+              fontSize: 14,
+              textDecoration: 'none',
+            }}
+          >
+            <item.icon style={{ width: 18, height: 18 }} />
+            <span>{item.label}</span>
+          </Link>
+        ))}
+      </nav>
+      <div style={{ marginTop: 'auto', paddingTop: 16, borderTop: '1px solid #334155' }}>
+        <Link href="/" style={{ display: 'block', textAlign: 'center', fontSize: 13, color: '#64748b', textDecoration: 'none' }}>
+          返回用户端
+        </Link>
+      </div>
+    </aside>
+  )
 }
 
 export default function AdminPage() {
@@ -40,7 +89,7 @@ export default function AdminPage() {
       const res = await fetch('/api/reset-demo', { method: 'POST' })
       const data = await res.json()
       if (data.success) {
-        alert('✅ 演示数据已重置为初始状态')
+        alert('演示数据已重置为初始状态')
         window.location.reload()
       } else {
         alert('重置失败：' + (data.error || '未知错误'))
@@ -54,188 +103,104 @@ export default function AdminPage() {
 
   if (!stats) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-400">加载中...</div>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f6f5f4' }}>
+        <p style={{ color: '#615d59' }}>加载中...</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* 侧边栏 */}
-      <aside className="fixed left-0 top-0 bottom-0 w-64 bg-slate-900 text-white p-4">
-        <div className="flex items-center gap-2 mb-8">
-          <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-            <BarChart3 className="w-5 h-5" />
-          </div>
-          <span className="font-bold">营销平台管理</span>
-        </div>
-        <nav className="space-y-1">
-          <Link href="/admin" className="flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-800 text-white">
-            <TrendingUp className="w-5 h-5" />
-            <span>仪表盘</span>
-          </Link>
-          <Link href="/admin/products" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white">
-            <Package className="w-5 h-5" />
-            <span>产品管理</span>
-          </Link>
-          <Link href="/admin/rights" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white">
-            <Shield className="w-5 h-5" />
-            <span>权益管理</span>
-          </Link>
-          <Link href="/admin/usages" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white">
-            <CheckCircle className="w-5 h-5" />
-            <span>权益核销</span>
-          </Link>
-          <Link href="/admin/orders" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white">
-            <FileText className="w-5 h-5" />
-            <span>订单管理</span>
-          </Link>
-          <Link href="/admin/members" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white">
-            <Users className="w-5 h-5" />
-            <span>会员管理</span>
-          </Link>
-          <Link href="/admin/billing-control" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white">
-            <CreditCard className="w-5 h-5" />
-            <span>扣费控制</span>
-          </Link>
-          <Link href="/admin/settlement" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white">
-            <DollarSign className="w-5 h-5" />
-            <span>结算对账</span>
-          </Link>
-          {/* <Link href="/admin/settings" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white">
-            <Settings className="w-5 h-5" />
-            <span>系统配置</span>
-          </Link> */}
-        </nav>
-        <div className="absolute bottom-4 left-4 right-4">
-          <Link href="/" className="block text-center text-sm text-slate-400 hover:text-white">
-            返回用户端
-          </Link>
-        </div>
-      </aside>
+    <div style={{ minHeight: '100vh', background: '#f6f5f4' }}>
+      <Sidebar activePath="/admin" />
 
-      {/* 主内容 */}
-      <main className="ml-64 p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold">仪表盘</h1>
+      <main style={{ marginLeft: 220, padding: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+          <h1 style={{ fontSize: 24, fontWeight: 700, color: 'rgba(0,0,0,0.95)' }}>仪表盘</h1>
           <button
             onClick={handleReset}
             disabled={resetting}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '8px 16px',
+              fontSize: 14,
+              fontWeight: 500,
+              color: '#fff',
+              background: '#dc2626',
+              border: 'none',
+              borderRadius: 6,
+              cursor: resetting ? 'not-allowed' : 'pointer',
+              opacity: resetting ? 0.7 : 1,
+            }}
           >
-            <RotateCcw className={`w-4 h-4 ${resetting ? 'animate-spin' : ''}`} />
+            <RotateCcw style={{ width: 14, height: 14, animation: resetting ? 'spin 1s linear infinite' : 'none' }} />
             {resetting ? '重置中...' : '重置演示数据'}
           </button>
         </div>
 
-        {/* 统计卡片 */}
-        <div className="grid grid-cols-4 gap-4 mb-6">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
+        {/* Stats Cards */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
+          {[
+            { label: '总用户数', value: stats.totalUsers, icon: Users, color: '#0075de' },
+            { label: '会员总数', value: stats.totalMembers, sub: `体验期 ${stats.trialMembers} / 正式 ${stats.activeMembers}`, icon: CreditCard, color: '#1aae39' },
+            { label: '总收入', value: `¥${stats.totalRevenue.toFixed(2)}`, icon: DollarSign, color: '#f59e0b' },
+            { label: '本月收入', value: `¥${stats.monthlyRevenue.toFixed(2)}`, icon: TrendingUp, color: '#8b5cf6' },
+          ].map((stat, i) => (
+            <div key={i} style={{ background: '#fff', border: '1px solid rgba(0, 0, 0, 0.1)', borderRadius: 12, padding: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
-                  <div className="text-sm text-gray-500">总用户数</div>
-                  <div className="text-2xl font-bold">{stats.totalUsers}</div>
+                  <div style={{ fontSize: 13, color: '#615d59' }}>{stat.label}</div>
+                  <div style={{ fontSize: 24, fontWeight: 700, color: 'rgba(0,0,0,0.95)' }}>{stat.value}</div>
+                  {stat.sub && <div style={{ fontSize: 12, color: '#a39e98' }}>{stat.sub}</div>}
                 </div>
-                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Users className="w-5 h-5 text-blue-600" />
+                <div style={{ width: 40, height: 40, background: `${stat.color}15`, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <stat.icon style={{ width: 20, height: 20, color: stat.color }} />
                 </div>
               </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-sm text-gray-500">会员总数</div>
-                  <div className="text-2xl font-bold">{stats.totalMembers}</div>
-                  <div className="text-xs text-gray-400">体验期 {stats.trialMembers} / 正式 {stats.activeMembers}</div>
-                </div>
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <CreditCard className="w-5 h-5 text-green-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-sm text-gray-500">总收入</div>
-                  <div className="text-2xl font-bold">¥{stats.totalRevenue.toFixed(2)}</div>
-                </div>
-                <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
-                  <DollarSign className="w-5 h-5 text-yellow-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-sm text-gray-500">本月收入</div>
-                  <div className="text-2xl font-bold">¥{stats.monthlyRevenue.toFixed(2)}</div>
-                </div>
-                <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                  <TrendingUp className="w-5 h-5 text-purple-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+          ))}
         </div>
 
-        <div className="grid grid-cols-2 gap-6">
-          {/* 最近扣费记录 */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">最近扣费记录</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {stats.billingRecords.map((record) => (
-                  <div key={record.id} className="flex items-center justify-between py-2 border-b last:border-0">
-                    <div>
-                      <div className="font-medium">{record.member.user.name}</div>
-                      <div className="text-xs text-gray-500">
-                        {record.type === 'MEMBERSHIP_FEE' ? '会员费' : '通行费'}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-medium text-red-500">-¥{record.amount}</div>
-                      <div className="text-xs text-gray-400">
-                        {new Date(record.createdAt).toLocaleDateString()}
-                      </div>
-                    </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 24 }}>
+          {/* Recent Billing */}
+          <div style={{ background: '#fff', border: '1px solid rgba(0, 0, 0, 0.1)', borderRadius: 12 }}>
+            <div style={{ padding: '12px 16px', borderBottom: '1px solid rgba(0, 0, 0, 0.1)' }}>
+              <h2 style={{ fontSize: 14, fontWeight: 600, margin: 0 }}>最近扣费记录</h2>
+            </div>
+            <div style={{ padding: 8 }}>
+              {stats.billingRecords.map((record) => (
+                <div key={record.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderBottom: '1px solid rgba(0, 0, 0, 0.05)' }}>
+                  <div>
+                    <div style={{ fontWeight: 500, fontSize: 14 }}>{record.member.user.name}</div>
+                    <div style={{ fontSize: 12, color: '#a39e98' }}>{record.type === 'MEMBERSHIP_FEE' ? '会员费' : '通行费'}</div>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontWeight: 600, color: '#dc2626' }}>-¥{record.amount}</div>
+                    <div style={{ fontSize: 12, color: '#a39e98' }}>{new Date(record.createdAt).toLocaleDateString()}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
 
-          {/* 产品分布 */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">会员产品分布</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {stats.productStats.map((item, index) => (
-                  <div key={item.productId} className="flex items-center gap-3">
-                    <div className="w-20 text-sm text-gray-500">产品 {index + 1}</div>
-                    <div className="flex-1 h-4 bg-gray-100 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-blue-500 rounded-full"
-                        style={{ width: `${(item._count / stats.totalMembers) * 100}%` }}
-                      />
-                    </div>
-                    <div className="w-12 text-sm text-right">{item._count}</div>
+          {/* Product Distribution */}
+          <div style={{ background: '#fff', border: '1px solid rgba(0, 0, 0, 0.1)', borderRadius: 12 }}>
+            <div style={{ padding: '12px 16px', borderBottom: '1px solid rgba(0, 0, 0, 0.1)' }}>
+              <h2 style={{ fontSize: 14, fontWeight: 600, margin: 0 }}>会员产品分布</h2>
+            </div>
+            <div style={{ padding: 16 }}>
+              {stats.productStats.map((item, index) => (
+                <div key={item.productId} style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                  <div style={{ width: 60, fontSize: 13, color: '#615d59' }}>产品 {index + 1}</div>
+                  <div style={{ flex: 1, height: 8, background: '#f6f5f4', borderRadius: 4, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', background: '#0075de', borderRadius: 4, width: `${(item._count / stats.totalMembers) * 100}%` }} />
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                  <div style={{ width: 32, fontSize: 14, textAlign: 'right' }}>{item._count}</div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </main>
     </div>

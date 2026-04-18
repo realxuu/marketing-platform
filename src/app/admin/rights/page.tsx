@@ -1,13 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Shield, Settings, Users, CreditCard, TrendingUp, DollarSign, FileText, BarChart3, Plus, Edit, Package, CheckCircle, Eye } from 'lucide-react'
+import { Sidebar } from '@/components/admin/Sidebar'
+import { Plus, Edit, Eye } from 'lucide-react'
 
 interface Right {
   id: string
@@ -91,159 +86,130 @@ export default function RightsPage() {
     setShowEdit(true)
   }
 
-  return (
-    <div className="min-h-screen bg-gray-100">
-      <aside className="fixed left-0 top-0 bottom-0 w-64 bg-slate-900 text-white p-4">
-        <div className="flex items-center gap-2 mb-8">
-          <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center"><BarChart3 className="w-5 h-5" /></div>
-          <span className="font-bold">营销平台管理</span>
-        </div>
-        <nav className="space-y-1">
-          <Link href="/admin" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white"><TrendingUp className="w-5 h-5" /><span>仪表盘</span></Link>
-          <Link href="/admin/products" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white"><Package className="w-5 h-5" /><span>产品管理</span></Link>
-          <Link href="/admin/rights" className="flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-800 text-white"><Shield className="w-5 h-5" /><span>权益管理</span></Link>
-          <Link href="/admin/usages" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white"><CheckCircle className="w-5 h-5" /><span>权益核销</span></Link>
-          <Link href="/admin/orders" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white"><FileText className="w-5 h-5" /><span>订单管理</span></Link>
-          <Link href="/admin/members" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white"><Users className="w-5 h-5" /><span>会员管理</span></Link>
-          <Link href="/admin/billing-control" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white"><CreditCard className="w-5 h-5" /><span>扣费控制</span></Link>
-          <Link href="/admin/settlement" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white"><DollarSign className="w-5 h-5" /><span>结算对账</span></Link>
-          {/* <Link href="/admin/settings" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white"><Settings className="w-5 h-5" /><span>系统配置</span></Link> */}
-        </nav>
-      </aside>
+  const renderForm = (isEdit: boolean) => (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
+      <div>
+        <label style={{ display: 'block', fontSize: 13, fontWeight: 500, marginBottom: 6 }}>权益名称</label>
+        <input value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} placeholder="请输入权益名称" style={{ width: '100%', border: '1px solid rgba(0, 0, 0, 0.1)', borderRadius: 6, padding: '8px 12px', fontSize: 14 }} />
+      </div>
+      <div>
+        <label style={{ display: 'block', fontSize: 13, fontWeight: 500, marginBottom: 6 }}>权益描述</label>
+        <input value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} placeholder="请输入权益描述" style={{ width: '100%', border: '1px solid rgba(0, 0, 0, 0.1)', borderRadius: 6, padding: '8px 12px', fontSize: 14 }} />
+      </div>
+      <div>
+        <label style={{ display: 'block', fontSize: 13, fontWeight: 500, marginBottom: 6 }}>总量控制</label>
+        <input type="number" value={formData.totalLimit} onChange={e => setFormData({ ...formData, totalLimit: e.target.value })} placeholder="留空表示不限制" style={{ width: '100%', border: '1px solid rgba(0, 0, 0, 0.1)', borderRadius: 6, padding: '8px 12px', fontSize: 14 }} />
+        <p style={{ fontSize: 12, color: '#a39e98', marginTop: 4 }}>可发放的权益总数量，留空不限制</p>
+      </div>
+      <div>
+        <label style={{ display: 'block', fontSize: 13, fontWeight: 500, marginBottom: 6 }}>详情HTML</label>
+        <textarea value={formData.detailHtml} onChange={e => setFormData({ ...formData, detailHtml: e.target.value })} placeholder="可选，权益详情展示内容" style={{ width: '100%', height: 60, border: '1px solid rgba(0, 0, 0, 0.1)', borderRadius: 6, padding: '8px 12px', fontSize: 14, resize: 'none' }} />
+        <p style={{ fontSize: 12, color: '#a39e98', marginTop: 4 }}>用户点击权益详情时展示的HTML内容</p>
+      </div>
+    </div>
+  )
 
-      <main className="ml-64 p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold">权益管理</h1>
-          <Button onClick={() => setShowAdd(true)}><Plus className="w-4 h-4 mr-2" />新增权益</Button>
+  return (
+    <div style={{ minHeight: '100vh', background: '#f6f5f4' }}>
+      <Sidebar activePath="/admin/rights" />
+
+      <main style={{ marginLeft: 220, padding: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+          <h1 style={{ fontSize: 24, fontWeight: 700, color: 'rgba(0,0,0,0.95)' }}>权益管理</h1>
+          <button onClick={() => setShowAdd(true)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', background: '#0075de', color: '#fff', border: 'none', borderRadius: 6, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+            <Plus style={{ width: 16, height: 16 }} />新增权益
+          </button>
         </div>
 
         {showAdd && (
-          <Card className="mb-6">
-            <CardHeader><CardTitle className="text-base">新增权益</CardTitle></CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                <div><Label>权益名称</Label><Input value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} placeholder="请输入权益名称" /></div>
-                <div><Label>权益描述</Label><Input value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} placeholder="请输入权益描述" /></div>
-                <div>
-                  <Label>总量控制</Label>
-                  <Input type="number" value={formData.totalLimit} onChange={e => setFormData({ ...formData, totalLimit: e.target.value })} placeholder="留空表示不限制" />
-                  <p className="text-xs text-gray-400 mt-1">可发放的权益总数量，留空不限制</p>
-                </div>
-                <div>
-                  <Label>详情HTML</Label>
-                  <Input value={formData.detailHtml} onChange={e => setFormData({ ...formData, detailHtml: e.target.value })} placeholder="可选，权益详情展示内容" />
-                  <p className="text-xs text-gray-400 mt-1">用户点击权益详情时展示的HTML内容</p>
-                </div>
-              </div>
-              <div className="flex justify-end gap-2 mt-4">
-                <Button variant="outline" onClick={() => setShowAdd(false)}>取消</Button>
-                <Button onClick={handleAdd}>确认添加</Button>
-              </div>
-            </CardContent>
-          </Card>
+          <div style={{ background: '#fff', border: '1px solid rgba(0, 0, 0, 0.1)', borderRadius: 12, marginBottom: 24 }}>
+            <div style={{ padding: '12px 16px', borderBottom: '1px solid rgba(0, 0, 0, 0.1)' }}>
+              <h2 style={{ fontSize: 14, fontWeight: 600, margin: 0 }}>新增权益</h2>
+            </div>
+            <div style={{ padding: 16 }}>{renderForm(false)}</div>
+            <div style={{ padding: '12px 16px', borderTop: '1px solid rgba(0, 0, 0, 0.05)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+              <button onClick={() => setShowAdd(false)} style={{ padding: '8px 16px', background: 'transparent', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 6, fontSize: 14, cursor: 'pointer' }}>取消</button>
+              <button onClick={handleAdd} style={{ padding: '8px 16px', background: '#0075de', color: '#fff', border: 'none', borderRadius: 6, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>确认添加</button>
+            </div>
+          </div>
         )}
 
         {showEdit && editData && (
-          <Card className="mb-6">
-            <CardHeader><CardTitle className="text-base">编辑权益</CardTitle></CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                <div><Label>权益名称</Label><Input value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} /></div>
-                <div><Label>权益描述</Label><Input value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} /></div>
-                <div>
-                  <Label>总量控制</Label>
-                  <Input type="number" value={formData.totalLimit} onChange={e => setFormData({ ...formData, totalLimit: e.target.value })} placeholder="留空表示不限制" />
-                </div>
-                <div>
-                  <Label>详情HTML</Label>
-                  <textarea
-                    className="w-full h-24 rounded-md border border-gray-200 px-3 py-2 text-sm"
-                    value={formData.detailHtml}
-                    onChange={e => setFormData({ ...formData, detailHtml: e.target.value })}
-                    placeholder="权益详情展示的HTML内容"
-                  />
-                </div>
-              </div>
-              <div className="flex justify-end gap-2 mt-4">
-                <Button variant="outline" onClick={() => { setShowEdit(false); setEditData(null) }}>取消</Button>
-                <Button onClick={handleEdit}>保存修改</Button>
-              </div>
-            </CardContent>
-          </Card>
+          <div style={{ background: '#fff', border: '1px solid rgba(0, 0, 0, 0.1)', borderRadius: 12, marginBottom: 24 }}>
+            <div style={{ padding: '12px 16px', borderBottom: '1px solid rgba(0, 0, 0, 0.1)' }}>
+              <h2 style={{ fontSize: 14, fontWeight: 600, margin: 0 }}>编辑权益</h2>
+            </div>
+            <div style={{ padding: 16 }}>{renderForm(true)}</div>
+            <div style={{ padding: '12px 16px', borderTop: '1px solid rgba(0, 0, 0, 0.05)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+              <button onClick={() => { setShowEdit(false); setEditData(null) }} style={{ padding: '8px 16px', background: 'transparent', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 6, fontSize: 14, cursor: 'pointer' }}>取消</button>
+              <button onClick={handleEdit} style={{ padding: '8px 16px', background: '#0075de', color: '#fff', border: 'none', borderRadius: 6, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>保存修改</button>
+            </div>
+          </div>
         )}
 
-        <Card>
-          <CardContent className="p-0">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b">
-                <tr>
-                  <th className="text-left p-4 font-medium">权益名称</th>
-                  <th className="text-left p-4 font-medium">描述</th>
-                  <th className="text-left p-4 font-medium">总量控制</th>
-                  <th className="text-left p-4 font-medium">已发放</th>
-                  <th className="text-left p-4 font-medium">详情</th>
-                  <th className="text-left p-4 font-medium">状态</th>
-                  <th className="text-left p-4 font-medium">关联产品</th>
-                  <th className="text-left p-4 font-medium">操作</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rights.map((right) => (
-                  <tr key={right.id} className="border-b last:border-0">
-                    <td className="p-4 font-medium">{right.name}</td>
-                    <td className="p-4 text-gray-500 max-w-xs truncate">{right.description || '-'}</td>
-                    <td className="p-4">
-                      {right.totalLimit !== null ? (
-                        <span className={right.currentTotal >= right.totalLimit ? 'text-red-500 font-medium' : ''}>
-                          {right.totalLimit}
-                        </span>
-                      ) : (
-                        <span className="text-gray-400">不限</span>
-                      )}
-                    </td>
-                    <td className="p-4">{right.currentTotal}</td>
-                    <td className="p-4">
-                      {right.detailHtml ? (
-                        <Button variant="ghost" size="sm" onClick={() => setShowDetailPreview(right.detailHtml)}>
-                          <Eye className="w-4 h-4 mr-1" />预览
-                        </Button>
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
-                    </td>
-                    <td className="p-4">
-                      <Badge className={right.isActive ? 'bg-green-500' : 'bg-gray-400'}>
-                        {right.isActive ? '启用' : '禁用'}
-                      </Badge>
-                    </td>
-                    <td className="p-4 text-gray-500">
-                      {right.products.map(p => p.product.name).join('、') || '-'}
-                    </td>
-                    <td className="p-4">
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm" onClick={() => openEdit(right)}><Edit className="w-4 h-4" /></Button>
-                        <Button variant="outline" size="sm" onClick={() => handleToggle(right.id, right.isActive)}>
-                          {right.isActive ? '禁用' : '启用'}
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
+        <div style={{ background: '#fff', border: '1px solid rgba(0, 0, 0, 0.1)', borderRadius: 12, overflow: 'hidden' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ background: '#f6f5f4', borderBottom: '1px solid rgba(0, 0, 0, 0.1)' }}>
+                {['权益名称', '描述', '总量控制', '已发放', '详情', '状态', '关联产品', '操作'].map(h => (
+                  <th key={h} style={{ textAlign: 'left', padding: '12px 16px', fontWeight: 500, fontSize: 13, color: '#615d59' }}>{h}</th>
                 ))}
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
+              </tr>
+            </thead>
+            <tbody>
+              {rights.map((right) => (
+                <tr key={right.id} style={{ borderBottom: '1px solid rgba(0, 0, 0, 0.05)' }}>
+                  <td style={{ padding: '12px 16px', fontWeight: 500 }}>{right.name}</td>
+                  <td style={{ padding: '12px 16px', color: '#615d59', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{right.description || '-'}</td>
+                  <td style={{ padding: '12px 16px' }}>
+                    {right.totalLimit !== null ? (
+                      <span style={{ color: right.currentTotal >= right.totalLimit ? '#dc2626' : 'rgba(0,0,0,0.95)', fontWeight: right.currentTotal >= right.totalLimit ? 600 : 400 }}>
+                        {right.totalLimit}
+                      </span>
+                    ) : (
+                      <span style={{ color: '#a39e98' }}>不限</span>
+                    )}
+                  </td>
+                  <td style={{ padding: '12px 16px' }}>{right.currentTotal}</td>
+                  <td style={{ padding: '12px 16px' }}>
+                    {right.detailHtml ? (
+                      <button onClick={() => setShowDetailPreview(right.detailHtml)} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'transparent', border: 'none', color: '#0075de', fontSize: 13, cursor: 'pointer' }}>
+                        <Eye style={{ width: 14, height: 14 }} />预览
+                      </button>
+                    ) : (
+                      <span style={{ color: '#a39e98' }}>-</span>
+                    )}
+                  </td>
+                  <td style={{ padding: '12px 16px' }}>
+                    <span style={{ background: right.isActive ? '#f0fdf4' : '#f6f5f4', color: right.isActive ? '#1aae39' : '#615d59', padding: '4px 10px', borderRadius: 9999, fontSize: 12, fontWeight: 500 }}>
+                      {right.isActive ? '启用' : '禁用'}
+                    </span>
+                  </td>
+                  <td style={{ padding: '12px 16px', color: '#615d59' }}>{right.products.map(p => p.product.name).join('、') || '-'}</td>
+                  <td style={{ padding: '12px 16px' }}>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button onClick={() => openEdit(right)} style={{ padding: '6px 10px', background: 'transparent', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 4, cursor: 'pointer' }}><Edit style={{ width: 14, height: 14 }} /></button>
+                      <button onClick={() => handleToggle(right.id, right.isActive)} style={{ padding: '6px 10px', background: 'transparent', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 4, fontSize: 13, cursor: 'pointer' }}>{right.isActive ? '禁用' : '启用'}</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </main>
 
       {showDetailPreview && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <Card className="w-full max-w-lg max-h-[80vh] overflow-auto">
-            <CardHeader><CardTitle>权益详情预览</CardTitle></CardHeader>
-            <CardContent>
-              <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: showDetailPreview }} />
-              <Button onClick={() => setShowDetailPreview(null)} className="w-full mt-4">关闭</Button>
-            </CardContent>
-          </Card>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div style={{ background: '#fff', borderRadius: 12, maxWidth: 500, width: '100%', maxHeight: '80vh', overflow: 'auto' }}>
+            <div style={{ padding: '12px 16px', borderBottom: '1px solid rgba(0, 0, 0, 0.1)' }}>
+              <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>权益详情预览</h3>
+            </div>
+            <div style={{ padding: 16 }} dangerouslySetInnerHTML={{ __html: showDetailPreview }} />
+            <div style={{ padding: '12px 16px', borderTop: '1px solid rgba(0, 0, 0, 0.05)' }}>
+              <button onClick={() => setShowDetailPreview(null)} style={{ width: '100%', padding: '10px 16px', background: '#0075de', color: '#fff', border: 'none', borderRadius: 6, fontWeight: 600, cursor: 'pointer' }}>关闭</button>
+            </div>
+          </div>
         </div>
       )}
     </div>

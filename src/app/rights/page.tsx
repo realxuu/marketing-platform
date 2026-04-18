@@ -2,9 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Shield, Crown, Car, Wrench, CheckCircle, Clock, ChevronRight } from 'lucide-react'
 
 interface UserRight {
@@ -46,11 +43,11 @@ interface Member {
   product: { name: string }
 }
 
-const plateColorDot: Record<string, string> = { BLUE: 'bg-blue-500', YELLOW: 'bg-yellow-500', GREEN: 'bg-green-500' }
-const statusMap: Record<string, { label: string; color: string; bg: string }> = {
-  TRIAL: { label: '体验期', color: 'text-orange-600', bg: 'bg-orange-100' },
-  ACTIVE: { label: '生效中', color: 'text-green-600', bg: 'bg-green-100' },
-  PENDING_CANCEL: { label: '待取消', color: 'text-amber-600', bg: 'bg-amber-100' },
+const plateColorDot: Record<string, string> = { BLUE: '#0075de', YELLOW: '#f59e0b', GREEN: '#22c55e' }
+const statusMap: Record<string, { label: string; bg: string; text: string }> = {
+  TRIAL: { label: '体验期', bg: '#fff7ed', text: '#dd5b00' },
+  ACTIVE: { label: '生效中', bg: '#f0fdf4', text: '#1aae39' },
+  PENDING_CANCEL: { label: '待取消', bg: '#fffbeb', text: '#dd5b00' },
 }
 
 export default function RightsPage() {
@@ -71,7 +68,6 @@ export default function RightsPage() {
       return
     }
 
-    // 获取会员信息
     fetch('/api/members')
       .then(res => res.json())
       .then((data: Member[]) => {
@@ -87,13 +83,10 @@ export default function RightsPage() {
         }
 
         setHasMember(true)
-
-        // 从 localStorage 获取选中的车牌
         const savedPlate = localStorage.getItem('selectedPlate')
         const defaultPlate = userMembers.find(m => m.plateNumber === savedPlate)?.plateNumber || userMembers[0].plateNumber
         setSelectedPlate(defaultPlate)
 
-        // 获取权益
         return fetch(`/api/user-rights?userId=${currentUserId}`)
           .then(res => res?.json())
       })
@@ -103,7 +96,6 @@ export default function RightsPage() {
       })
   }, [])
 
-  // 监听 storage 变化，同步会员页面的选择
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'selectedPlate' && e.newValue) {
@@ -114,7 +106,6 @@ export default function RightsPage() {
     return () => window.removeEventListener('storage', handleStorageChange)
   }, [])
 
-  // 按选中的车牌筛选权益
   const filteredRights = selectedPlate
     ? userRights.filter(ur => ur.member?.plateNumber === selectedPlate)
     : userRights
@@ -128,10 +119,10 @@ export default function RightsPage() {
   }
 
   const getStatusBadge = (status: string, usedCount: number, totalCount: number) => {
-    if (status === 'ACTIVE') return <Badge className="bg-green-500 text-white">剩余 {totalCount - usedCount} 次</Badge>
-    if (status === 'USED') return <Badge className="bg-gray-400 text-white">已用完</Badge>
-    if (status === 'EXPIRED') return <Badge className="bg-red-400 text-white">已过期</Badge>
-    return <Badge>{status}</Badge>
+    if (status === 'ACTIVE') return <span style={{ background: '#f0fdf4', color: '#1aae39', padding: '2px 8px', borderRadius: '9999px', fontSize: '12px', fontWeight: 600 }}>剩余 {totalCount - usedCount} 次</span>
+    if (status === 'USED') return <span style={{ background: '#f6f5f4', color: '#615d59', padding: '2px 8px', borderRadius: '9999px', fontSize: '12px', fontWeight: 600 }}>已用完</span>
+    if (status === 'EXPIRED') return <span style={{ background: '#fef2f2', color: '#dc2626', padding: '2px 8px', borderRadius: '9999px', fontSize: '12px', fontWeight: 600 }}>已过期</span>
+    return null
   }
 
   const getTypeLabel = (type: string) => {
@@ -141,8 +132,8 @@ export default function RightsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-400">加载中...</div>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#ffffff' }}>
+        <p style={{ color: '#615d59' }}>加载中...</p>
       </div>
     )
   }
@@ -151,165 +142,179 @@ export default function RightsPage() {
   const usedRights = filteredRights.filter(ur => ur.status !== 'ACTIVE')
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-4 py-6">
-        <h1 className="text-lg font-semibold mb-2">权益中心</h1>
-        <div className="flex items-center gap-4 text-sm text-blue-100">
-          <span>可用权益: <span className="text-white font-medium">{activeRights.length}</span></span>
-          <span>已用: <span className="text-white font-medium">{usedRights.length}</span></span>
+    <div style={{ minHeight: '100vh', background: '#ffffff', paddingBottom: 80 }}>
+      {/* Header */}
+      <header style={{ background: '#ffffff', borderBottom: '1px solid rgba(0, 0, 0, 0.1)' }}>
+        <div style={{ maxWidth: '768px', margin: '0 auto', padding: '16px' }}>
+          <h1 style={{ fontSize: '20px', fontWeight: 600, margin: 0, color: 'rgba(0,0,0,0.95)', letterSpacing: '-0.32px' }}>权益中心</h1>
+          <div style={{ display: 'flex', gap: '16px', marginTop: '8px', fontSize: '14px', color: '#615d59' }}>
+            <span>可用权益: <strong style={{ color: 'rgba(0,0,0,0.95)' }}>{activeRights.length}</strong></span>
+            <span>已用: <strong style={{ color: 'rgba(0,0,0,0.95)' }}>{usedRights.length}</strong></span>
+          </div>
         </div>
-      </div>
+      </header>
 
-      <div className="max-w-md mx-auto p-4">
+      <main style={{ maxWidth: '768px', margin: '0 auto', padding: '16px' }}>
         {!hasMember ? (
-          <Card className="text-center py-8">
-            <CardContent>
-              <Shield className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 mb-2">您还未开通会员</p>
-              <p className="text-gray-400 text-sm mb-4">开通会员后即可享受专属权益</p>
-              <Link href="/"><Button>立即开通会员</Button></Link>
-            </CardContent>
-          </Card>
+          <div style={{ textAlign: 'center', padding: '48px 16px' }}>
+            <Shield style={{ width: 48, height: 48, color: '#a39e98', margin: '0 auto 16px' }} />
+            <p style={{ color: '#615d59', marginBottom: 8 }}>您还未开通会员</p>
+            <p style={{ color: '#a39e98', fontSize: '14px', marginBottom: 16 }}>开通会员后即可享受专属权益</p>
+            <Link href="/">
+              <button style={{ background: '#0075de', color: '#fff', padding: '8px 16px', borderRadius: 4, border: 'none', fontWeight: 600, cursor: 'pointer' }}>立即开通会员</button>
+            </Link>
+          </div>
         ) : (
           <>
-            {/* 当前车辆信息 */}
             {currentMember && (
-              <div className="mb-4 bg-white border rounded-lg px-4 py-2.5 flex items-center gap-2">
-                <span className={`w-2 h-2 rounded-full ${plateColorDot[currentMember.plateColor || 'BLUE']}`} />
-                <span className="font-medium text-sm">{currentMember.plateNumber}</span>
-                <Badge className={`${statusMap[currentMember.status]?.bg || ''} ${statusMap[currentMember.status]?.color || ''} text-xs`}>
+              <div style={{ marginBottom: 16, background: '#ffffff', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 12, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: plateColorDot[currentMember.plateColor || 'BLUE'] }} />
+                <span style={{ fontWeight: 500, fontSize: '14px' }}>{currentMember.plateNumber}</span>
+                <span style={{ background: statusMap[currentMember.status]?.bg, color: statusMap[currentMember.status]?.text, padding: '2px 8px', borderRadius: '9999px', fontSize: '12px', fontWeight: 500 }}>
                   {statusMap[currentMember.status]?.label}
-                </Badge>
+                </span>
               </div>
             )}
 
             {filteredRights.length === 0 ? (
-              <Card className="text-center py-8">
-                <CardContent>
-                  <Shield className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500 mb-4">该车辆暂无权益</p>
-                </CardContent>
-              </Card>
+              <div style={{ textAlign: 'center', padding: '48px 16px' }}>
+                <Shield style={{ width: 48, height: 48, color: '#a39e98', margin: '0 auto 16px' }} />
+                <p style={{ color: '#615d59' }}>该车辆暂无权益</p>
+              </div>
             ) : (
-          <div className="space-y-4">
-            {activeRights.length > 0 && (
-              <>
-                <h2 className="text-sm font-medium text-gray-500 flex items-center gap-1">
-                  <CheckCircle className="w-4 h-4 text-green-500" />可用权益
-                </h2>
-                {activeRights.map((ur) => {
-                  const Icon = ur.right ? getIcon(ur.right.name) : Crown
-                  const hasDetail = !!ur.right?.detailHtml
-                  return (
-                    <Card
-                      key={ur.id}
-                      className={`overflow-hidden ${hasDetail ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}`}
-                      onClick={() => {
-                        if (hasDetail) {
-                          setDetailTitle(ur.right!.name)
-                          setDetailHtml(ur.right!.detailHtml!)
-                        }
-                      }}
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex items-start gap-4">
-                          <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                            <Icon className="w-6 h-6 text-blue-600" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="font-medium">{ur.right?.name || '未知权益'}</span>
-                              {getStatusBadge(ur.status, ur.usedCount, ur.totalCount)}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {activeRights.length > 0 && (
+                  <>
+                    <h2 style={{ fontSize: '14px', fontWeight: 500, color: '#615d59', display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <CheckCircle style={{ width: 16, height: 16, color: '#1aae39' }} />可用权益
+                    </h2>
+                    {activeRights.map((ur) => {
+                      const Icon = ur.right ? getIcon(ur.right.name) : Crown
+                      const hasDetail = !!ur.right?.detailHtml
+                      return (
+                        <div
+                          key={ur.id}
+                          onClick={() => {
+                            if (hasDetail) {
+                              setDetailTitle(ur.right!.name)
+                              setDetailHtml(ur.right!.detailHtml!)
+                            }
+                          }}
+                          style={{
+                            background: '#ffffff',
+                            border: '1px solid rgba(0,0,0,0.1)',
+                            borderRadius: 12,
+                            padding: 16,
+                            cursor: hasDetail ? 'pointer' : 'default',
+                          }}
+                        >
+                          <div style={{ display: 'flex', gap: 16 }}>
+                            <div style={{ width: 48, height: 48, background: '#f6f5f4', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                              <Icon style={{ width: 24, height: 24, color: '#0075de' }} />
                             </div>
-                            <p className="text-sm text-gray-500 mb-2">{ur.right?.description || '暂无描述'}</p>
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs text-gray-400">有效期至: {new Date(ur.expireAt).toLocaleDateString()}</span>
-                              {hasDetail && <ChevronRight className="w-4 h-4 text-gray-400" />}
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )
-                })}
-              </>
-            )}
-
-            {usedRights.length > 0 && (
-              <>
-                <h2 className="text-sm font-medium text-gray-500 flex items-center gap-1 mt-6">
-                  <Clock className="w-4 h-4 text-gray-400" />已用权益
-                </h2>
-                {usedRights.map((ur) => {
-                  const Icon = ur.right ? getIcon(ur.right.name) : Crown
-                  return (
-                    <Card key={ur.id} className="overflow-hidden bg-gray-50">
-                      <CardContent className="p-4">
-                        <div className="flex items-start gap-4">
-                          <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
-                            <Icon className="w-6 h-6 text-gray-400" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="font-medium text-gray-500">{ur.right?.name || '未知权益'}</span>
-                              {getStatusBadge(ur.status, ur.usedCount, ur.totalCount)}
-                            </div>
-                            {ur.usages.length > 0 && (
-                              <div className="mt-2 space-y-1">
-                                {ur.usages.map(u => (
-                                  <div key={u.id} className="text-xs text-gray-400 flex items-center gap-2">
-                                    <span className="bg-gray-200 px-1.5 py-0.5 rounded">{getTypeLabel(u.type)}</span>
-                                    {u.description && <span>{u.description}</span>}
-                                    <span>{new Date(u.createdAt).toLocaleDateString()}</span>
-                                  </div>
-                                ))}
+                            <div style={{ flex: 1 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                                <span style={{ fontWeight: 600 }}>{ur.right?.name || '未知权益'}</span>
+                                {getStatusBadge(ur.status, ur.usedCount, ur.totalCount)}
                               </div>
-                            )}
+                              <p style={{ fontSize: '14px', color: '#615d59', marginBottom: 8 }}>{ur.right?.description || '暂无描述'}</p>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ fontSize: '12px', color: '#a39e98' }}>有效期至: {new Date(ur.expireAt).toLocaleDateString()}</span>
+                                {hasDetail && <ChevronRight style={{ width: 16, height: 16, color: '#a39e98' }} />}
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  )
-                })}
-              </>
-            )}
+                      )
+                    })}
+                  </>
+                )}
 
-            <Card className="bg-blue-50 border-blue-200">
-              <CardContent className="p-4">
-                <div className="text-sm text-blue-800">
-                  <p className="font-medium mb-1">温馨提示</p>
-                  <ul className="text-blue-600 space-y-1 text-xs">
+                {usedRights.length > 0 && (
+                  <>
+                    <h2 style={{ fontSize: '14px', fontWeight: 500, color: '#615d59', display: 'flex', alignItems: 'center', gap: 8, marginTop: 16 }}>
+                      <Clock style={{ width: 16, height: 16, color: '#a39e98' }} />已用权益
+                    </h2>
+                    {usedRights.map((ur) => {
+                      const Icon = ur.right ? getIcon(ur.right.name) : Crown
+                      return (
+                        <div
+                          key={ur.id}
+                          style={{
+                            background: '#f6f5f4',
+                            border: '1px solid rgba(0,0,0,0.1)',
+                            borderRadius: 12,
+                            padding: 16,
+                          }}
+                        >
+                          <div style={{ display: 'flex', gap: 16 }}>
+                            <div style={{ width: 48, height: 48, background: '#ebebeb', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                              <Icon style={{ width: 24, height: 24, color: '#a39e98' }} />
+                            </div>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                                <span style={{ fontWeight: 600, color: '#615d59' }}>{ur.right?.name || '未知权益'}</span>
+                                {getStatusBadge(ur.status, ur.usedCount, ur.totalCount)}
+                              </div>
+                              {ur.usages.length > 0 && (
+                                <div style={{ marginTop: 8 }}>
+                                  {ur.usages.map(u => (
+                                    <div key={u.id} style={{ fontSize: '12px', color: '#a39e98', display: 'flex', gap: 8, marginBottom: 4 }}>
+                                      <span style={{ background: '#ebebeb', padding: '2px 6px', borderRadius: 4 }}>{getTypeLabel(u.type)}</span>
+                                      {u.description && <span>{u.description}</span>}
+                                      <span>{new Date(u.createdAt).toLocaleDateString()}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </>
+                )}
+
+                <div style={{ background: '#f2f9ff', border: '1px solid rgba(0, 117, 222, 0.2)', borderRadius: 12, padding: 16 }}>
+                  <p style={{ fontSize: '14px', fontWeight: 600, marginBottom: 8, color: '#0075de' }}>温馨提示</p>
+                  <ul style={{ fontSize: '13px', color: '#097fe8', display: 'flex', flexDirection: 'column', gap: 4 }}>
                     <li>• 权益在会员有效期内可用</li>
                     <li>• 点击权益可查看详情</li>
                     <li>• 部分权益需提前预约</li>
                     <li>• 如有问题请联系客服：400-xxx-xxxx</li>
                   </ul>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+              </div>
             )}
           </>
         )}
-      </div>
+      </main>
 
       {detailHtml && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <Card className="w-full max-w-md max-h-[80vh] overflow-auto">
-            <CardContent className="pt-6">
-              <h3 className="text-lg font-semibold mb-4">{detailTitle}</h3>
-              <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: detailHtml }} />
-              <Button onClick={() => { setDetailHtml(null); setDetailTitle('') }} className="w-full mt-4">关闭</Button>
-            </CardContent>
-          </Card>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div style={{ background: '#fff', borderRadius: 12, maxWidth: 400, width: '100%', maxHeight: '80vh', overflow: 'auto', padding: 24 }}>
+            <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: 16 }}>{detailTitle}</h3>
+            <div dangerouslySetInnerHTML={{ __html: detailHtml }} />
+            <button onClick={() => { setDetailHtml(null); setDetailTitle('') }} style={{ width: '100%', marginTop: 16, padding: '8px 16px', background: '#0075de', color: '#fff', border: 'none', borderRadius: 4, fontWeight: 600, cursor: 'pointer' }}>关闭</button>
+          </div>
         </div>
       )}
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t">
-        <div className="max-w-md mx-auto flex">
-          <Link href="/" className="flex-1 flex flex-col items-center py-2 text-gray-400"><Car className="w-5 h-5" /><span className="text-xs mt-1">ETC申办</span></Link>
-          <Link href="/rights" className="flex-1 flex flex-col items-center py-2 text-blue-600"><Shield className="w-5 h-5" /><span className="text-xs mt-1">权益</span></Link>
-          <Link href="/member" className="flex-1 flex flex-col items-center py-2 text-gray-400"><Crown className="w-5 h-5" /><span className="text-xs mt-1">我的</span></Link>
+      {/* Bottom Navigation */}
+      <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#ffffff', borderTop: '1px solid rgba(0, 0, 0, 0.1)', zIndex: 40 }}>
+        <div style={{ maxWidth: '768px', margin: '0 auto', display: 'flex' }}>
+          <Link href="/" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '12px 0', color: '#a39e98' }}>
+            <Car style={{ width: 20, height: 20 }} />
+            <span style={{ fontSize: 12, marginTop: 4, fontWeight: 500 }}>ETC申办</span>
+          </Link>
+          <Link href="/rights" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '12px 0', color: 'rgba(0,0,0,0.95)' }}>
+            <Shield style={{ width: 20, height: 20 }} />
+            <span style={{ fontSize: 12, marginTop: 4, fontWeight: 500 }}>权益</span>
+          </Link>
+          <Link href="/member" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '12px 0', color: '#a39e98' }}>
+            <Crown style={{ width: 20, height: 20 }} />
+            <span style={{ fontSize: 12, marginTop: 4, fontWeight: 500 }}>我的</span>
+          </Link>
         </div>
       </nav>
     </div>

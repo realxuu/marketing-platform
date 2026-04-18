@@ -1,139 +1,216 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
 import { Crown, Shield, Car, CreditCard, Gift, ChevronRight, FileText } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen pb-16 bg-gray-50">
-      {/* 头部横幅 */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white">
-        <div className="max-w-md mx-auto px-4 py-6">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-              <Car className="w-5 h-5" />
+    <div className="min-h-screen bg-white pb-20">
+      {/* Header */}
+      <header className="bg-white" style={{ borderBottom: '1px solid rgba(0, 0, 0, 0.1)' }}>
+        <div className="max-w-3xl mx-auto px-4 py-4">
+          <div className="flex items-center gap-3">
+            <div
+              className="w-10 h-10 rounded flex items-center justify-center"
+              style={{ backgroundColor: '#f6f5f4' }}
+            >
+              <Car className="w-5 h-5" style={{ color: 'rgba(0, 0, 0, 0.95)' }} />
             </div>
             <div>
-              <h1 className="text-xl font-bold">粤通卡服务</h1>
-              <p className="text-blue-100 text-sm">ETC申办 · 会员服务</p>
+              <h1
+                className="text-xl font-semibold"
+                style={{ color: 'rgba(0, 0, 0, 0.95)', letterSpacing: '-0.32px' }}
+              >
+                粤通卡服务
+              </h1>
+              <p className="text-sm" style={{ color: '#615d59' }}>
+                ETC申办 · 会员服务
+              </p>
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* 内容区域 */}
-      <div className="max-w-md mx-auto px-4 py-6 space-y-4">
-        {/* ETC申办入口 */}
-        <div className="bg-white rounded-xl border overflow-hidden">
-          <div className="p-4 border-b bg-gray-50">
-            <h2 className="font-medium flex items-center gap-2">
-              <Car className="w-5 h-5 text-blue-600" />
+      {/* Main Content */}
+      <main className="max-w-3xl mx-auto px-4 py-8 space-y-6">
+        {/* ETC Section */}
+        <section
+          className="bg-white rounded-xl overflow-hidden"
+          style={{
+            border: '1px solid rgba(0, 0, 0, 0.1)',
+            boxShadow: 'rgba(0, 0, 0, 0.04) 0px 4px 18px, rgba(0, 0, 0, 0.027) 0px 2.025px 7.85px'
+          }}
+        >
+          <div
+            className="px-4 py-3 flex items-center gap-2"
+            style={{ borderBottom: '1px solid rgba(0, 0, 0, 0.1)' }}
+          >
+            <Car className="w-5 h-5" style={{ color: 'rgba(0, 0, 0, 0.95)' }} />
+            <h2
+              className="font-semibold"
+              style={{ color: 'rgba(0, 0, 0, 0.95)', letterSpacing: '-0.25px' }}
+            >
               ETC在线申办
             </h2>
           </div>
           <div className="p-4">
-            <div className="space-y-2 mb-4 text-sm text-gray-600">
-              <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                <span>免费办理，包邮到家</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                <span>支持支付宝/微信/银联签约</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                <span>快速审核，3-5个工作日寄出</span>
-              </div>
-            </div>
+            <ul className="space-y-2 mb-4">
+              {['免费办理，包邮到家', '支持支付宝/微信/银联签约', '快速审核，3-5个工作日寄出'].map((item) => (
+                <li key={item} className="flex items-center gap-2 text-sm" style={{ color: '#615d59' }}>
+                  <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0075de' }} />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
             <Link href="/apply">
-              <Button className="w-full">
+              <button
+                className="w-full py-2 px-4 rounded font-semibold text-sm flex items-center justify-center gap-1 transition-all"
+                style={{
+                  backgroundColor: '#0075de',
+                  color: '#ffffff',
+                }}
+              >
                 立即申办
-                <ChevronRight className="w-4 h-4 ml-1" />
-              </Button>
+                <ChevronRight className="w-4 h-4" />
+              </button>
             </Link>
           </div>
-        </div>
+        </section>
 
-        {/* 会员服务 */}
-        <div className="bg-white rounded-xl border overflow-hidden">
-          <div className="p-4 border-b bg-gray-50 flex items-center justify-between">
-            <h2 className="font-medium flex items-center gap-2">
-              <Crown className="w-5 h-5 text-orange-500" />
-              会员服务
-            </h2>
-            <Link href="/membership/select" className="text-sm text-blue-600">
+        {/* Membership Section */}
+        <section
+          className="bg-white rounded-xl overflow-hidden"
+          style={{
+            border: '1px solid rgba(0, 0, 0, 0.1)',
+            boxShadow: 'rgba(0, 0, 0, 0.04) 0px 4px 18px, rgba(0, 0, 0, 0.027) 0px 2.025px 7.85px'
+          }}
+        >
+          <div
+            className="px-4 py-3 flex items-center justify-between"
+            style={{ borderBottom: '1px solid rgba(0, 0, 0, 0.1)' }}
+          >
+            <div className="flex items-center gap-2">
+              <Crown className="w-5 h-5" style={{ color: 'rgba(0, 0, 0, 0.95)' }} />
+              <h2
+                className="font-semibold"
+                style={{ color: 'rgba(0, 0, 0, 0.95)', letterSpacing: '-0.25px' }}
+              >
+                会员服务
+              </h2>
+            </div>
+            <Link
+              href="/membership/select"
+              className="text-sm font-medium hover:underline"
+              style={{ color: '#0075de' }}
+            >
               查看套餐
             </Link>
           </div>
           <div className="p-4">
-            {/* 体验期提示 */}
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4 flex items-start gap-2">
-              <Gift className="w-4 h-4 text-orange-500 flex-shrink-0 mt-0.5" />
-              <div className="text-xs">
-                <span className="text-orange-700 font-medium">新用户专享2个月免费体验期</span>
-              </div>
+            {/* Trial Banner */}
+            <div
+              className="rounded-lg p-3 mb-4 flex items-start gap-2"
+              style={{ backgroundColor: '#f2f9ff' }}
+            >
+              <Gift className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: '#0075de' }} />
+              <p className="text-sm font-medium" style={{ color: '#097fe8' }}>
+                新用户专享2个月免费体验期
+              </p>
             </div>
 
-            {/* 套餐预览 */}
+            {/* Pricing Cards */}
             <div className="grid grid-cols-3 gap-2">
-              <div className="border rounded-lg p-2 text-center bg-blue-50 border-blue-200">
-                <div className="text-xs text-gray-500">年卡</div>
-                <div className="text-blue-600 font-bold text-sm">¥138</div>
+              <div
+                className="rounded-lg p-3 text-center"
+                style={{ backgroundColor: '#f6f5f4' }}
+              >
+                <p className="text-xs mb-1" style={{ color: '#615d59' }}>年卡</p>
+                <p
+                  className="font-bold"
+                  style={{ color: '#0075de', letterSpacing: '-0.25px' }}
+                >
+                  ¥138
+                </p>
               </div>
-              <div className="border rounded-lg p-2 text-center">
-                <div className="text-xs text-gray-500">月卡</div>
-                <div className="text-green-600 font-bold text-sm">¥16.8</div>
+              <div
+                className="rounded-lg p-3 text-center"
+                style={{ backgroundColor: '#f6f5f4' }}
+              >
+                <p className="text-xs mb-1" style={{ color: '#615d59' }}>月卡</p>
+                <p
+                  className="font-bold"
+                  style={{ color: '#0075de', letterSpacing: '-0.25px' }}
+                >
+                  ¥16.8
+                </p>
               </div>
-              <div className="border rounded-lg p-2 text-center">
-                <div className="text-xs text-gray-500">次卡</div>
-                <div className="text-orange-600 font-bold text-sm">¥1/次</div>
+              <div
+                className="rounded-lg p-3 text-center"
+                style={{ backgroundColor: '#f6f5f4' }}
+              >
+                <p className="text-xs mb-1" style={{ color: '#615d59' }}>次卡</p>
+                <p
+                  className="font-bold"
+                  style={{ color: '#0075de', letterSpacing: '-0.25px' }}
+                >
+                  ¥1/次
+                </p>
               </div>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* 权益说明 */}
-        <div className="bg-white rounded-xl border p-4">
-          <h3 className="font-medium mb-3 text-sm">会员权益</h3>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex items-center gap-2">
-              <Shield className="w-4 h-4 text-green-500" />
-              <span className="text-xs text-gray-600">粤运道路救援</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CreditCard className="w-4 h-4 text-blue-500" />
-              <span className="text-xs text-gray-600">设备只换不修</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <FileText className="w-4 h-4 text-purple-500" />
-              <span className="text-xs text-gray-600">高速意外险</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Gift className="w-4 h-4 text-orange-500" />
-              <span className="text-xs text-gray-600">更多权益</span>
-            </div>
+        {/* Benefits Section */}
+        <section
+          className="bg-white rounded-xl p-4"
+          style={{
+            border: '1px solid rgba(0, 0, 0, 0.1)',
+            boxShadow: 'rgba(0, 0, 0, 0.04) 0px 4px 18px, rgba(0, 0, 0, 0.027) 0px 2.025px 7.85px'
+          }}
+        >
+          <h3
+            className="font-semibold mb-4"
+            style={{ color: 'rgba(0, 0, 0, 0.95)', letterSpacing: '-0.25px' }}
+          >
+            会员权益
+          </h3>
+          <div className="grid grid-cols-2 gap-4">
+            {[
+              { icon: Shield, label: '粤运道路救援', color: '#2a9d99' },
+              { icon: CreditCard, label: '设备只换不修', color: '#0075de' },
+              { icon: FileText, label: '高速意外险', color: '#391c57' },
+              { icon: Gift, label: '更多权益', color: '#ff64c8' },
+            ].map(({ icon: Icon, label, color }) => (
+              <div key={label} className="flex items-center gap-2">
+                <Icon className="w-4 h-4" style={{ color }} />
+                <span className="text-sm" style={{ color: '#615d59' }}>{label}</span>
+              </div>
+            ))}
           </div>
-        </div>
-      </div>
+        </section>
+      </main>
 
-      {/* 底部导航 */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t">
-        <div className="max-w-md mx-auto flex">
-          <Link href="/" className="flex-1 flex flex-col items-center py-3 text-blue-600">
-            <Car className="w-5 h-5" />
-            <span className="text-xs mt-1">ETC申办</span>
-          </Link>
-          <Link href="/rights" className="flex-1 flex flex-col items-center py-3 text-gray-400">
-            <Shield className="w-5 h-5" />
-            <span className="text-xs mt-1">权益</span>
-          </Link>
-          <Link href="/member" className="flex-1 flex flex-col items-center py-3 text-gray-400">
-            <Crown className="w-5 h-5" />
-            <span className="text-xs mt-1">我的</span>
-          </Link>
+      {/* Bottom Navigation */}
+      <nav
+        className="fixed bottom-0 left-0 right-0 bg-white z-50"
+        style={{ borderTop: '1px solid rgba(0, 0, 0, 0.1)' }}
+      >
+        <div className="max-w-3xl mx-auto flex">
+          {[
+            { href: '/', icon: Car, label: 'ETC申办', active: true },
+            { href: '/rights', icon: Shield, label: '权益', active: false },
+            { href: '/member', icon: Crown, label: '我的', active: false },
+          ].map(({ href, icon: Icon, label, active }) => (
+            <Link
+              key={href}
+              href={href}
+              className="flex-1 flex flex-col items-center py-3"
+              style={{ color: active ? 'rgba(0, 0, 0, 0.95)' : '#a39e98' }}
+            >
+              <Icon className="w-5 h-5" />
+              <span className="text-xs mt-1 font-medium">{label}</span>
+            </Link>
+          ))}
         </div>
       </nav>
     </div>

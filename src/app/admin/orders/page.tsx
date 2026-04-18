@@ -1,11 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Shield, Settings, Users, CreditCard, TrendingUp, DollarSign, FileText, BarChart3, Package, CheckCircle, RefreshCw, Zap } from 'lucide-react'
+import { Sidebar } from '@/components/admin/Sidebar'
+import { RefreshCw, Zap } from 'lucide-react'
 import { format } from 'date-fns'
 
 interface Order {
@@ -34,12 +31,12 @@ export default function OrdersPage() {
 
   useEffect(() => { loadOrders() }, [])
 
-  const statusMap: Record<string, { label: string; color: string }> = {
-    PENDING: { label: '待支付', color: 'bg-yellow-500' },
-    PENDING_ACTIVATION: { label: '待激活', color: 'bg-blue-500' },
-    PAID: { label: '已支付', color: 'bg-green-500' },
-    CANCELLED: { label: '已取消', color: 'bg-gray-400' },
-    REFUNDED: { label: '已退款', color: 'bg-red-500' },
+  const statusMap: Record<string, { label: string; color: string; bg: string }> = {
+    PENDING: { label: '待支付', color: '#dd5b00', bg: '#fff7ed' },
+    PENDING_ACTIVATION: { label: '待激活', color: '#0075de', bg: '#f2f9ff' },
+    PAID: { label: '已支付', color: '#1aae39', bg: '#f0fdf4' },
+    CANCELLED: { label: '已取消', color: '#615d59', bg: '#f6f5f4' },
+    REFUNDED: { label: '已退款', color: '#dc2626', bg: '#fef2f2' },
   }
 
   const channelMap: Record<string, string> = {
@@ -79,93 +76,69 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <aside className="fixed left-0 top-0 bottom-0 w-64 bg-slate-900 text-white p-4">
-        <div className="flex items-center gap-2 mb-8">
-          <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center"><BarChart3 className="w-5 h-5" /></div>
-          <span className="font-bold">营销平台管理</span>
-        </div>
-        <nav className="space-y-1">
-          <Link href="/admin" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white"><TrendingUp className="w-5 h-5" /><span>仪表盘</span></Link>
-          <Link href="/admin/products" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white"><Package className="w-5 h-5" /><span>产品管理</span></Link>
-          <Link href="/admin/rights" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white"><Shield className="w-5 h-5" /><span>权益管理</span></Link>
-          <Link href="/admin/usages" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white"><CheckCircle className="w-5 h-5" /><span>权益核销</span></Link>
-          <Link href="/admin/orders" className="flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-800 text-white"><FileText className="w-5 h-5" /><span>订单管理</span></Link>
-          <Link href="/admin/members" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white"><Users className="w-5 h-5" /><span>会员管理</span></Link>
-          <Link href="/admin/billing-control" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white"><CreditCard className="w-5 h-5" /><span>扣费控制</span></Link>
-          <Link href="/admin/settlement" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white"><DollarSign className="w-5 h-5" /><span>结算对账</span></Link>
-          {/* <Link href="/admin/settings" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white"><Settings className="w-5 h-5" /><span>系统配置</span></Link> */}
-        </nav>
-      </aside>
+    <div style={{ minHeight: '100vh', background: '#f6f5f4' }}>
+      <Sidebar activePath="/admin/orders" />
 
-      <main className="ml-64 p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold">订单管理</h1>
-          <Button variant="outline" onClick={loadOrders}><RefreshCw className="w-4 h-4 mr-2" />刷新</Button>
+      <main style={{ marginLeft: 220, padding: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+          <h1 style={{ fontSize: 24, fontWeight: 700, color: 'rgba(0,0,0,0.95)' }}>订单管理</h1>
+          <button onClick={loadOrders} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', background: '#fff', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 6, fontSize: 14, cursor: 'pointer' }}>
+            <RefreshCw style={{ width: 14, height: 14 }} />刷新
+          </button>
         </div>
 
-        <Card>
-          <CardContent className="p-0">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b">
-                <tr>
-                  <th className="text-left p-4 font-medium">订单号</th>
-                  <th className="text-left p-4 font-medium">用户</th>
-                  <th className="text-left p-4 font-medium">产品</th>
-                  <th className="text-left p-4 font-medium">金额</th>
-                  <th className="text-left p-4 font-medium">签约渠道</th>
-                  <th className="text-left p-4 font-medium">状态</th>
-                  <th className="text-left p-4 font-medium">激活</th>
-                  <th className="text-left p-4 font-medium">创建时间</th>
-                  <th className="text-left p-4 font-medium">操作</th>
-                </tr>
-              </thead>
-              <tbody>
-                {orders.map((order) => (
-                  <tr key={order.id} className="border-b last:border-0 hover:bg-gray-50">
-                    <td className="p-4 font-mono text-sm">{order.id.slice(0, 8)}...</td>
-                    <td className="p-4">
-                      <div>{order.user.name}</div>
-                      <div className="text-xs text-gray-500">{order.user.phone}</div>
-                    </td>
-                    <td className="p-4">{order.product.name}</td>
-                    <td className="p-4 font-medium">¥{order.amount.toFixed(2)}</td>
-                    <td className="p-4">
-                      {order.channel ? (
-                        <Badge variant="outline">{channelMap[order.channel] || order.channel}</Badge>
-                      ) : '-'}
-                    </td>
-                    <td className="p-4">
-                      <Badge className={`${statusMap[order.status]?.color} text-white`}>
-                        {statusMap[order.status]?.label}
-                      </Badge>
-                    </td>
-                    <td className="p-4">
-                      {order.isActivated ? (
-                        <Badge className="bg-green-100 text-green-700">已激活</Badge>
-                      ) : (
-                        <Badge className="bg-gray-100 text-gray-500">未激活</Badge>
-                      )}
-                    </td>
-                    <td className="p-4 text-gray-500 text-sm">
-                      {format(new Date(order.createdAt), 'yyyy-MM-dd HH:mm')}
-                    </td>
-                    <td className="p-4">
-                      {order.status === 'PENDING_ACTIVATION' && !order.isActivated && (
-                        <Button variant="default" size="sm" className="mr-2" onClick={() => handleActivate(order.id)}>
-                          <Zap className="w-3 h-3 mr-1" />激活
-                        </Button>
-                      )}
-                      {order.status === 'PAID' && (
-                        <Button variant="outline" size="sm" className="text-red-600" onClick={() => handleRefund(order.id)}>退款</Button>
-                      )}
-                    </td>
-                  </tr>
+        <div style={{ background: '#fff', border: '1px solid rgba(0, 0, 0, 0.1)', borderRadius: 12, overflow: 'hidden' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ background: '#f6f5f4', borderBottom: '1px solid rgba(0, 0, 0, 0.1)' }}>
+                {['订单号', '用户', '产品', '金额', '签约渠道', '状态', '激活', '创建时间', '操作'].map(h => (
+                  <th key={h} style={{ textAlign: 'left', padding: '12px 16px', fontWeight: 500, fontSize: 13, color: '#615d59' }}>{h}</th>
                 ))}
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
+              </tr>
+            </thead>
+            <tbody>
+              {orders.map((order) => (
+                <tr key={order.id} style={{ borderBottom: '1px solid rgba(0, 0, 0, 0.05)' }}>
+                  <td style={{ padding: '12px 16px', fontFamily: 'monospace', fontSize: 13 }}>{order.id.slice(0, 8)}...</td>
+                  <td style={{ padding: '12px 16px' }}>
+                    <div>{order.user.name}</div>
+                    <div style={{ fontSize: 12, color: '#a39e98' }}>{order.user.phone}</div>
+                  </td>
+                  <td style={{ padding: '12px 16px' }}>{order.product.name}</td>
+                  <td style={{ padding: '12px 16px', fontWeight: 600 }}>¥{order.amount.toFixed(2)}</td>
+                  <td style={{ padding: '12px 16px' }}>
+                    {order.channel ? (
+                      <span style={{ background: '#f6f5f4', padding: '4px 8px', borderRadius: 4, fontSize: 12 }}>{channelMap[order.channel] || order.channel}</span>
+                    ) : '-'}
+                  </td>
+                  <td style={{ padding: '12px 16px' }}>
+                    <span style={{ background: statusMap[order.status]?.bg, color: statusMap[order.status]?.color, padding: '4px 10px', borderRadius: 9999, fontSize: 12, fontWeight: 500 }}>
+                      {statusMap[order.status]?.label}
+                    </span>
+                  </td>
+                  <td style={{ padding: '12px 16px' }}>
+                    {order.isActivated ? (
+                      <span style={{ background: '#f0fdf4', color: '#1aae39', padding: '4px 8px', borderRadius: 4, fontSize: 12 }}>已激活</span>
+                    ) : (
+                      <span style={{ background: '#f6f5f4', color: '#615d59', padding: '4px 8px', borderRadius: 4, fontSize: 12 }}>未激活</span>
+                    )}
+                  </td>
+                  <td style={{ padding: '12px 16px', fontSize: 13, color: '#615d59' }}>{format(new Date(order.createdAt), 'yyyy-MM-dd HH:mm')}</td>
+                  <td style={{ padding: '12px 16px' }}>
+                    {order.status === 'PENDING_ACTIVATION' && !order.isActivated && (
+                      <button onClick={() => handleActivate(order.id)} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '6px 12px', background: '#0075de', color: '#fff', border: 'none', borderRadius: 4, fontSize: 13, cursor: 'pointer', marginRight: 8 }}>
+                        <Zap style={{ width: 12, height: 12 }} />激活
+                      </button>
+                    )}
+                    {order.status === 'PAID' && (
+                      <button onClick={() => handleRefund(order.id)} style={{ padding: '6px 12px', background: 'transparent', color: '#dc2626', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 4, fontSize: 13, cursor: 'pointer' }}>退款</button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </main>
     </div>
   )

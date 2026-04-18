@@ -2,10 +2,7 @@
 
 import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Shield, ChevronRight, ArrowLeft } from 'lucide-react'
+import { Shield, ChevronRight, ArrowLeft, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 
 interface Product {
@@ -35,7 +32,6 @@ function MembershipSelectContent() {
   const phone = searchParams.get('phone') || ''
 
   useEffect(() => {
-    // 检查该车牌是否已有会员
     if (plateNumber) {
       fetch('/api/members')
         .then(res => res.json())
@@ -64,17 +60,17 @@ function MembershipSelectContent() {
   }, [plateNumber])
 
   const getTypeBadge = (type: string) => {
-    const styles: Record<string, string> = {
-      YEARLY: 'bg-blue-500',
-      MONTHLY: 'bg-green-500',
-      PER_USE: 'bg-orange-500',
+    const styles: Record<string, { bg: string; text: string }> = {
+      YEARLY: { bg: '#f2f9ff', text: '#0075de' },
+      MONTHLY: { bg: '#f0fdf4', text: '#1aae39' },
+      PER_USE: { bg: '#fff7ed', text: '#dd5b00' },
     }
     const labels: Record<string, string> = {
       YEARLY: '年卡',
       MONTHLY: '月卡',
       PER_USE: '次卡',
     }
-    return <Badge className={`${styles[type]} text-white`}>{labels[type]}</Badge>
+    return <span style={{ background: styles[type]?.bg, color: styles[type]?.text, padding: '2px 8px', borderRadius: 9999, fontSize: 12, fontWeight: 600 }}>{labels[type]}</span>
   }
 
   const getPriceText = (product: Product) => {
@@ -99,7 +95,6 @@ function MembershipSelectContent() {
     setLoading(true)
     setError(null)
     try {
-      // 1. 创建或获取用户
       const userRes = await fetch('/api/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -112,7 +107,6 @@ function MembershipSelectContent() {
       })
       const user = await userRes.json()
 
-      // 2. 创建订单
       const orderRes = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -126,7 +120,6 @@ function MembershipSelectContent() {
       })
       const order = await orderRes.json()
 
-      // 3. 激活会员（会员签约）
       const activateRes = await fetch('/api/activate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -138,12 +131,10 @@ function MembershipSelectContent() {
       })
 
       if (activateRes.ok) {
-        // 保存当前用户 ID（模拟登录态）
         localStorage.setItem('currentUserId', user.id)
         router.push('/membership/success')
       } else {
         const activateData = await activateRes.json()
-        // 如果是"已有会员"错误，刷新页面显示提示
         if (activateData.error?.includes('已有生效')) {
           setExistingMember(true)
         } else {
@@ -160,28 +151,28 @@ function MembershipSelectContent() {
 
   if (checking) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <p className="text-gray-500">检查中...</p>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#ffffff' }}>
+        <Loader2 style={{ width: 32, height: 32, color: '#0075de', animation: 'spin 1s linear infinite' }} />
       </div>
     )
   }
 
   if (existingMember) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-md mx-auto px-4 py-8 text-center">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Shield className="w-8 h-8 text-green-600" />
+      <div style={{ minHeight: '100vh', background: '#ffffff' }}>
+        <div style={{ maxWidth: '768px', margin: '0 auto', padding: '64px 16px', textAlign: 'center' }}>
+          <div style={{ width: 64, height: 64, background: '#f0fdf4', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+            <Shield style={{ width: 32, height: 32, color: '#1aae39' }} />
           </div>
-          <h2 className="text-lg font-semibold mb-2">该车辆已有会员</h2>
-          <p className="text-gray-500 text-sm mb-6">
-            车牌 <strong>{plateNumber}</strong> 已开通会员服务，每辆车只能购买一个会员
+          <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>该车辆已有会员</h2>
+          <p style={{ color: '#615d59', fontSize: 14, marginBottom: 24 }}>
+            车牌 <strong style={{ color: 'rgba(0,0,0,0.95)' }}>{plateNumber}</strong> 已开通会员服务，每辆车只能购买一个会员
           </p>
           <Link href="/member">
-            <Button className="w-full h-11">
+            <button style={{ background: '#0075de', color: '#fff', padding: '12px 24px', borderRadius: 4, border: 'none', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
               查看我的会员
-              <ChevronRight className="w-4 h-4 ml-1" />
-            </Button>
+              <ChevronRight style={{ width: 16, height: 16 }} />
+            </button>
           </Link>
         </div>
       </div>
@@ -189,106 +180,131 @@ function MembershipSelectContent() {
   }
 
   return (
-    <div className="min-h-screen pb-28 bg-gray-50">
+    <div style={{ minHeight: '100vh', background: '#ffffff', paddingBottom: 100 }}>
       {/* 头部 */}
-      <div className="bg-white border-b sticky top-0 z-10">
-        <div className="max-w-md mx-auto px-4 py-3 flex items-center gap-3">
+      <header style={{ background: '#ffffff', borderBottom: '1px solid rgba(0, 0, 0, 0.1)', position: 'sticky', top: 0, zIndex: 10 }}>
+        <div style={{ maxWidth: '768px', margin: '0 auto', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
           <Link href={`/activate?plateNumber=${plateNumber}&plateColor=${plateColor}&channel=${channel}&name=${encodeURIComponent(name)}&phone=${phone}`}>
-            <ArrowLeft className="w-5 h-5 text-gray-600" />
+            <ArrowLeft style={{ width: 20, height: 20, color: '#615d59' }} />
           </Link>
-          <h1 className="font-medium">选择会员套餐</h1>
+          <h1 style={{ fontSize: '16px', fontWeight: 500, margin: 0, color: 'rgba(0,0,0,0.95)' }}>选择会员套餐</h1>
         </div>
-      </div>
+      </header>
 
-      <div className="max-w-md mx-auto px-4 py-4">
+      <main style={{ maxWidth: '768px', margin: '0 auto', padding: '16px' }}>
         {/* 错误提示 */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4 text-sm text-red-700">
+          <div style={{ background: '#fef2f2', border: '1px solid rgba(220, 38, 38, 0.2)', borderRadius: 8, padding: 12, marginBottom: 16, fontSize: 14, color: '#dc2626' }}>
             {error}
           </div>
         )}
 
-        {/* 签约渠道（来自ETC申办） */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-600">签约渠道</span>
-            <span className="font-medium text-blue-700">{getChannelLabel(channel)}</span>
+        {/* 签约渠道 */}
+        <div style={{ background: '#f2f9ff', border: '1px solid rgba(0, 117, 222, 0.2)', borderRadius: 12, padding: 12, marginBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: 14, color: '#615d59' }}>签约渠道</span>
+            <span style={{ fontWeight: 500, color: '#0075de' }}>{getChannelLabel(channel)}</span>
           </div>
-          <p className="text-xs text-gray-500 mt-1">会员签约将使用ETC申办时选择的渠道</p>
+          <p style={{ fontSize: 12, color: '#097fe8', marginTop: 4 }}>会员签约将使用ETC申办时选择的渠道</p>
         </div>
 
         {/* 体验期提示 */}
-        <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4 text-sm text-orange-700">
+        <div style={{ background: '#fff7ed', border: '1px solid rgba(221, 91, 0, 0.2)', borderRadius: 8, padding: 12, marginBottom: 16, fontSize: 14, color: '#dd5b00' }}>
           新用户专享：开通即享 <strong>2个月免费体验期</strong>，体验期内可随时取消，不产生费用
         </div>
 
         {/* 产品列表 */}
-        <div className="space-y-3">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {products.map((product) => (
-            <Card
+            <div
               key={product.id}
-              className={`cursor-pointer transition-all ${selectedProductId === product.id ? 'ring-2 ring-blue-500' : ''}`}
               onClick={() => setSelectedProductId(product.id)}
+              style={{
+                background: '#ffffff',
+                border: selectedProductId === product.id ? '1px solid #0075de' : '1px solid rgba(0, 0, 0, 0.1)',
+                borderRadius: 12,
+                padding: 16,
+                cursor: 'pointer',
+                transition: 'all 0.15s',
+              }}
             >
-              <CardHeader className="pb-2">
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedProductId === product.id ? 'border-blue-500 bg-blue-500' : 'border-gray-300'}`}>
-                      {selectedProductId === product.id && (
-                        <div className="w-2 h-2 bg-white rounded-full" />
-                      )}
-                    </div>
-                    <div>
-                      <CardTitle className="text-base">{product.name}</CardTitle>
-                      <CardDescription className="text-xs">{product.description}</CardDescription>
-                    </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{
+                    width: 20,
+                    height: 20,
+                    borderRadius: '50%',
+                    border: selectedProductId === product.id ? '1px solid #0075de' : '1px solid #ebebeb',
+                    background: selectedProductId === product.id ? '#0075de' : 'transparent',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                    {selectedProductId === product.id && <div style={{ width: 8, height: 8, background: '#fff', borderRadius: '50%' }} />}
                   </div>
-                  {getTypeBadge(product.type)}
+                  <div>
+                    <div style={{ fontWeight: 500 }}>{product.name}</div>
+                    {product.description && <div style={{ fontSize: 12, color: '#a39e98' }}>{product.description}</div>}
+                  </div>
                 </div>
-              </CardHeader>
-              <CardContent className="pb-3">
-                <div className="text-xl font-bold text-blue-600 mb-2">
-                  {getPriceText(product)}
-                </div>
-                <div className="space-y-1">
-                  {product.rights.slice(0, 3).map((r, i) => (
-                    <div key={i} className="flex items-center gap-2 text-xs text-gray-500">
-                      <Shield className="w-3 h-3 text-green-500" />
-                      <span>{r.right.name}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                {getTypeBadge(product.type)}
+              </div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: '#0075de', marginBottom: 8 }}>
+                {getPriceText(product)}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {product.rights.slice(0, 3).map((r, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#615d59' }}>
+                    <Shield style={{ width: 12, height: 12, color: '#1aae39' }} />
+                    <span>{r.right.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
 
         {/* 协议 */}
-        <div className="mt-4 flex items-start gap-2">
+        <div style={{ marginTop: 16, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
           <input
             type="checkbox"
             id="agreement"
             checked={agreed}
             onChange={(e) => setAgreed(e.target.checked)}
-            className="mt-0.5 w-4 h-4 text-blue-600 rounded border-gray-300"
+            style={{ marginTop: 2, width: 16, height: 16 }}
           />
-          <label htmlFor="agreement" className="text-xs text-gray-500 leading-relaxed">
+          <label htmlFor="agreement" style={{ fontSize: 13, color: '#615d59' }}>
             我已阅读并同意《会员服务协议》，知悉体验期结束后将自动扣费开通正式会员
           </label>
         </div>
-      </div>
+      </main>
 
       {/* 底部操作栏 */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4">
-        <div className="max-w-md mx-auto">
-          <Button
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#ffffff', borderTop: '1px solid rgba(0, 0, 0, 0.1)', padding: 16 }}>
+        <div style={{ maxWidth: '768px', margin: '0 auto' }}>
+          <button
             onClick={handlePurchase}
             disabled={!selectedProductId || !agreed || loading}
-            className="w-full h-11"
+            style={{
+              width: '100%',
+              padding: '12px 16px',
+              background: '#0075de',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 4,
+              fontWeight: 600,
+              fontSize: 15,
+              cursor: 'pointer',
+              opacity: !selectedProductId || !agreed || loading ? 0.5 : 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+            }}
           >
             {loading ? '处理中...' : '立即开通'}
-            <ChevronRight className="w-4 h-4 ml-1" />
-          </Button>
+            <ChevronRight style={{ width: 16, height: 16 }} />
+          </button>
         </div>
       </div>
     </div>
@@ -297,8 +313,8 @@ function MembershipSelectContent() {
 
 function LoadingFallback() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <p className="text-gray-500">加载中...</p>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#ffffff' }}>
+      <Loader2 style={{ width: 32, height: 32, color: '#0075de', animation: 'spin 1s linear infinite' }} />
     </div>
   )
 }
