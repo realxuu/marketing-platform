@@ -52,9 +52,20 @@ export default function MemberPage() {
     fetch('/api/members')
       .then(res => res.json())
       .then((data: Member[]) => {
-        const userMembers = currentUserId
-          ? data.filter(m => m.userId === currentUserId || m.user?.id === currentUserId)
-          : data
+        let userMembers = data
+
+        // 如果有 userId，先尝试过滤
+        if (currentUserId) {
+          const filtered = data.filter(m => m.userId === currentUserId || m.user?.id === currentUserId)
+          // 如果过滤后没有数据但 API 返回了数据，说明 userId 过期了，使用所有数据（演示模式）
+          if (filtered.length > 0) {
+            userMembers = filtered
+          } else {
+            // 清除过期的 userId
+            localStorage.removeItem('currentUserId')
+            localStorage.removeItem('currentMemberId')
+          }
+        }
 
         setMembers(userMembers)
         if (userMembers.length > 0) {
