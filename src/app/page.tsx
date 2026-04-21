@@ -98,13 +98,6 @@ export default function HomePage() {
                 会员服务
               </h2>
             </div>
-            <Link
-              href="/membership/select"
-              className="text-sm font-medium hover:underline"
-              style={{ color: '#0075de' }}
-            >
-              查看套餐
-            </Link>
           </div>
           <div className="p-4">
             {/* Trial Banner */}
@@ -156,6 +149,27 @@ export default function HomePage() {
                   ¥1/次
                 </p>
               </div>
+            </div>
+
+            {/* Demo Entry */}
+            <div
+              className="mt-4 pt-4"
+              style={{ borderTop: '1px solid rgba(0, 0, 0, 0.1)' }}
+            >
+              <Link href="/membership/select?phone=13800138001&name=%E8%B5%B5%E5%85%AD&plateNumber=%E7%B2%A4D88888&plateColor=BLUE&channel=ALIPAY">
+                <button
+                  className="w-full py-2 px-4 rounded font-medium text-sm flex items-center justify-center gap-1 transition-all"
+                  style={{
+                    backgroundColor: '#f2f9ff',
+                    color: '#097fe8',
+                    border: '1px solid rgba(0, 117, 222, 0.2)',
+                  }}
+                >
+                  <Gift className="w-4 h-4" />
+                  演示模式：体验购买流程
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </Link>
             </div>
           </div>
         </section>

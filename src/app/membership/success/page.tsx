@@ -1,9 +1,56 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { CheckCircle, Gift, Shield, ChevronRight } from 'lucide-react'
+import { CheckCircle, Gift, Shield, ChevronRight, Loader2 } from 'lucide-react'
+
+interface UserRight {
+  id: string
+  right: {
+    name: string
+    description: string | null
+  }
+  status: string
+  totalCount: number
+  usedCount: number
+}
 
 export default function MembershipSuccessPage() {
+  const [rights, setRights] = useState<UserRight[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const memberId = localStorage.getItem('currentMemberId')
+    const userId = localStorage.getItem('currentUserId')
+
+    if (!memberId && !userId) {
+      setLoading(false)
+      return
+    }
+
+    // 优先使用 memberId 获取当前会员的权益
+    const fetchRights = async () => {
+      try {
+        const params = new URLSearchParams()
+        if (memberId) {
+          params.set('memberId', memberId)
+        } else if (userId) {
+          params.set('userId', userId)
+        }
+
+        const res = await fetch(`/api/user-rights?${params.toString()}`)
+        const data = await res.json()
+        setRights(data.filter((r: UserRight) => r.status === 'ACTIVE'))
+      } catch (e) {
+        console.error(e)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchRights()
+  }, [])
+
   return (
     <div style={{ minHeight: '100vh', background: '#ffffff' }}>
       {/* Success Header */}
@@ -35,14 +82,22 @@ export default function MembershipSuccessPage() {
             <Shield style={{ width: 18, height: 18, color: '#1aae39' }} />
             您的专属权益
           </h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {['粤运道路救援', 'ETC设备只换不修', '高速意外险'].map((name) => (
-              <div key={name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgba(0, 0, 0, 0.05)' }}>
-                <span style={{ color: '#615d59' }}>{name}</span>
-                <span style={{ color: '#1aae39', fontSize: '14px', fontWeight: 500 }}>已开通</span>
-              </div>
-            ))}
-          </div>
+          {loading ? (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: 24 }}>
+              <Loader2 style={{ width: 24, height: 24, color: '#0075de', animation: 'spin 1s linear infinite' }} />
+            </div>
+          ) : rights.length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {rights.map((userRight) => (
+                <div key={userRight.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgba(0, 0, 0, 0.05)' }}>
+                  <span style={{ color: '#615d59' }}>{userRight.right.name}</span>
+                  <span style={{ color: '#1aae39', fontSize: '14px', fontWeight: 500 }}>已开通</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p style={{ color: '#a39e98', fontSize: 14, textAlign: 'center', padding: '16px 0' }}>暂无权益信息</p>
+          )}
         </div>
 
         {/* Action Buttons */}

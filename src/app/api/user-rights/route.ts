@@ -5,11 +5,13 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const userId = await searchParams.get('userId')
+    const memberId = await searchParams.get('memberId')
     const status = await searchParams.get('status')
 
     const userRights = await prisma.userRight.findMany({
       where: {
         ...(userId ? { userId } : {}),
+        ...(memberId ? { memberId } : {}),
         ...(status ? { status } : {}),
       },
       include: {

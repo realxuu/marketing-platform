@@ -131,7 +131,11 @@ function MembershipSelectContent() {
       })
 
       if (activateRes.ok) {
+        const activateData = await activateRes.json()
         localStorage.setItem('currentUserId', user.id)
+        if (activateData.member?.id) {
+          localStorage.setItem('currentMemberId', activateData.member.id)
+        }
         router.push('/membership/success')
       } else {
         const activateData = await activateRes.json()
@@ -148,6 +152,11 @@ function MembershipSelectContent() {
       setLoading(false)
     }
   }
+
+  // 检查必要参数
+  const missingParams = []
+  if (!phone) missingParams.push('手机号')
+  if (!plateNumber) missingParams.push('车牌号')
 
   if (checking) {
     return (
@@ -282,9 +291,14 @@ function MembershipSelectContent() {
       {/* 底部操作栏 */}
       <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#ffffff', borderTop: '1px solid rgba(0, 0, 0, 0.1)', padding: 16 }}>
         <div style={{ maxWidth: '768px', margin: '0 auto' }}>
+          {missingParams.length > 0 && (
+            <div style={{ background: '#fef2f2', border: '1px solid rgba(220, 38, 38, 0.2)', borderRadius: 8, padding: 12, marginBottom: 12, fontSize: 14, color: '#dc2626' }}>
+              缺少必要信息：{missingParams.join('、')}，请从申办页面重新进入
+            </div>
+          )}
           <button
             onClick={handlePurchase}
-            disabled={!selectedProductId || !agreed || loading}
+            disabled={!selectedProductId || !agreed || !phone || loading}
             style={{
               width: '100%',
               padding: '12px 16px',
@@ -295,7 +309,7 @@ function MembershipSelectContent() {
               fontWeight: 600,
               fontSize: 15,
               cursor: 'pointer',
-              opacity: !selectedProductId || !agreed || loading ? 0.5 : 1,
+              opacity: !selectedProductId || !agreed || !phone || loading ? 0.5 : 1,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
